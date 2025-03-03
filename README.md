@@ -1,4 +1,4 @@
-# TrabajoObligatorioPL HOLA
+# TrabajoObligatorioPL 
 
 La práctica consiste en el diseño e implementación de un traductor de programas escritos en
 un lenguaje de programación similar a PASCAL (de ahora en adelante lenguaje fuente), a otro
