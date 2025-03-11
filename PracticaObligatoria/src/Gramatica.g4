@@ -11,29 +11,33 @@ COMENTARIOVL: ('*') [~*]+ ('*') {};
 
 PRG: ('program') (ID) (';') (BLQ) ('.');
 BLQ: (DCLLIST) ('begin') (SENTLIST) ('end');
-DCLLIST: ('ʎ' | (DCLLIST) (DCL));
-SENTLIST: (SENT | (SENTLIST) (SENT));
+DCLLIST: ('ʎ' |  (DCL) (DCLLIST));
+SENTLIST: (SENT)  (SENTLISTP) ;
+SENTLISTP: ((SENT) (SENTLISTP)| ('ʎ'));
 
-DCL:( DEFCTE | DEFVAR | DEFPROC | DEFFUN);
+DCL:(DEFCTE | DEFVAR | DEFPROC | DEFFUN);
 DEFCTE: ('CONST') (CTELIST);
-CTELIST: ((ID) ('=') (SIMPVALUE) (';')) | ((CTELIST) (ID) ('=') SIMPVALUE (';'));
+CTELIST: ((ID) ('=') (SIMPVALUE) (';')) | ((ID) ('=') SIMPVALUE (';') (CTELISTP) );
+CTELISTP: ((ID) ('=') SIMPVALUE (';') (CTELISTP)) | 'ʎ';
 SIMPVALUE: CONSTINT| CONSTREAL| CONSTLI;
 DEFVAR: ('VAR') (DEFVARLIST) (';');
-DEFVARLIST : ((VARLIST) (':') (TBAS)) | (DEFVARLIST) (';') (VARLIST) (':') (TBAS);
+DEFVARLIST : ((VARLIST) (':') (TBAS)) | (';') (VARLIST) (':') (TBAS)(DEFVARLISTP) ;
+DEFVARLISTP : (';') (VARLIST) (':') (TBAS) (DEFVARLISTP) | ('ʎ');
 VARLIST: ID | (ID) (',') (VARLIST);
 DEFPROC: ('PROCEDURE') (ID) (FORMAL_PARAMLIST) (';') (BLQ) (';');
-DEFFUN: (FUNCTION) (ID) (FORMAL_PARAMLIST) (':') (TBAS) (';') (BLQ) (';');
-FORMAL_PARAMLIST: 'ʎ' | ('(') (FORMAL_PARAM) (')');
+DEFFUN: ('FUNCTION') (ID) (FORMAL_PARAMLIST) (':') (TBAS) (';') (BLQ) (';');
+FORMAL_PARAMLIST: ('ʎ') | ('(') (FORMAL_PARAM) (')');
 FORMAL_PARAM: ((VARLIST) (':') (TBAS))| (VARLIST) (':') (TBAS) (';') (FORMAL_PARAM);
 TBAS: 'INTEGER' | 'REAL';
 
 SENT: (ASIG) (';') | (PROC_CALL) (';');
 ASIG: (ID) (':=') (EXP);
-EXP: ((EXP) (OP) (EXP)) | FACTOR;
+EXP: FACTOR (EXPP);
+EXPP: ((OP) (EXPP) (EXP)) | ('ʎ');
 OP: OPARIT;
 OPARIT: '+' | '-'| '*' | 'DIV' | 'MOD';
 FACTOR: SIMPVALUE | (('(') (EXP) (')')) | ((ID) (SUBPARAMLIST));
-SUBPARAMLIST: 'ʎ' | ('(') (EXPLIST) (')');
+SUBPARAMLIST: ('ʎ') | ('(') (EXPLIST) (')');
 EXPLIST: EXP | ((EXP) (',') (EXPLIST));
 PROC_CALL: (ID) (SUBPARAMLIST);
 
