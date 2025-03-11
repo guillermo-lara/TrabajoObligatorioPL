@@ -1,4 +1,4 @@
-program Test3;
+program ejemplo;
 
 const
     PI = 3.14159;
