@@ -1,12 +1,9 @@
-// Generated from R:/Documents/PL/recursiva/src/Gramatica.g4 by ANTLR 4.13.1
+// Generated from R:/Documents/PL/TrabajoObligatorioPL/PracticaObligatoria/src/Gramatica.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class GramaticaParser extends Parser {
@@ -16,7 +13,12 @@ public class GramaticaParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		ID=1, CONSTINT=2, CONSTREAL=3, CONSTLI=4, COMENTARIO1L=5, COMENTARIOVL=6;
+		ID=1, CONSTINT=2, CONSTREAL=3, CONSTLI=4, COMENTARIO1L=5, COMENTARIOVL=6, 
+		PRG=7, BLQ=8, DCLLIST=9, SENTLIST=10, SENTLISTP=11, DCL=12, DEFCTE=13, 
+		CTELIST=14, CTELISTP=15, SIMPVALUE=16, DEFVAR=17, DEFVARLIST=18, DEFVARLISTP=19, 
+		VARLIST=20, DEFPROC=21, DEFFUN=22, FORMAL_PARAMLIST=23, FORMAL_PARAM=24, 
+		TBAS=25, SENT=26, ASIG=27, EXP=28, EXPP=29, OP=30, OPARIT=31, FACTOR=32, 
+		SUBPARAMLIST=33, EXPLIST=34, PROC_CALL=35;
 	public static final int
 		RULE_axioma = 0;
 	private static String[] makeRuleNames() {
@@ -33,7 +35,12 @@ public class GramaticaParser extends Parser {
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, "ID", "CONSTINT", "CONSTREAL", "CONSTLI", "COMENTARIO1L", "COMENTARIOVL"
+			null, "ID", "CONSTINT", "CONSTREAL", "CONSTLI", "COMENTARIO1L", "COMENTARIOVL", 
+			"PRG", "BLQ", "DCLLIST", "SENTLIST", "SENTLISTP", "DCL", "DEFCTE", "CTELIST", 
+			"CTELISTP", "SIMPVALUE", "DEFVAR", "DEFVARLIST", "DEFVARLISTP", "VARLIST", 
+			"DEFPROC", "DEFFUN", "FORMAL_PARAMLIST", "FORMAL_PARAM", "TBAS", "SENT", 
+			"ASIG", "EXP", "EXPP", "OP", "OPARIT", "FACTOR", "SUBPARAMLIST", "EXPLIST", 
+			"PROC_CALL"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -175,7 +182,7 @@ public class GramaticaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0006\b\u0002\u0000\u0007\u0000\u0001\u0000\u0004\u0000\u0004"+
+		"\u0004\u0001#\b\u0002\u0000\u0007\u0000\u0001\u0000\u0004\u0000\u0004"+
 		"\b\u0000\u000b\u0000\f\u0000\u0005\u0001\u0000\u0000\u0000\u0001\u0000"+
 		"\u0000\u0001\u0001\u0000\u0001\u0006\u0007\u0000\u0003\u0001\u0000\u0000"+
 		"\u0000\u0002\u0004\u0007\u0000\u0000\u0000\u0003\u0002\u0001\u0000\u0000"+

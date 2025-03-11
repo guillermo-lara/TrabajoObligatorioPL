@@ -1,5 +1,9 @@
 grammar Gramatica;
 
+@members{
+
+}
+
 axioma:(ID|CONSTINT|CONSTREAL|CONSTLI|COMENTARIO1L|COMENTARIOVL)+;
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]+{};
