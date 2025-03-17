@@ -99,30 +99,6 @@ public class GramaticaParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class AxiomaContext extends ParserRuleContext {
-		public List<TerminalNode> ID() { return getTokens(GramaticaParser.ID); }
-		public TerminalNode ID(int i) {
-			return getToken(GramaticaParser.ID, i);
-		}
-		public List<TerminalNode> CONSTINT() { return getTokens(GramaticaParser.CONSTINT); }
-		public TerminalNode CONSTINT(int i) {
-			return getToken(GramaticaParser.CONSTINT, i);
-		}
-		public List<TerminalNode> CONSTREAL() { return getTokens(GramaticaParser.CONSTREAL); }
-		public TerminalNode CONSTREAL(int i) {
-			return getToken(GramaticaParser.CONSTREAL, i);
-		}
-		public List<TerminalNode> CONSTLI() { return getTokens(GramaticaParser.CONSTLI); }
-		public TerminalNode CONSTLI(int i) {
-			return getToken(GramaticaParser.CONSTLI, i);
-		}
-		public List<TerminalNode> COMENTARIO1L() { return getTokens(GramaticaParser.COMENTARIO1L); }
-		public TerminalNode COMENTARIO1L(int i) {
-			return getToken(GramaticaParser.COMENTARIO1L, i);
-		}
-		public List<TerminalNode> COMENTARIOVL() { return getTokens(GramaticaParser.COMENTARIOVL); }
-		public TerminalNode COMENTARIOVL(int i) {
-			return getToken(GramaticaParser.COMENTARIOVL, i);
-		}
 		public List<TerminalNode> PRG() { return getTokens(GramaticaParser.PRG); }
 		public TerminalNode PRG(int i) {
 			return getToken(GramaticaParser.PRG, i);
@@ -239,6 +215,30 @@ public class GramaticaParser extends Parser {
 		public TerminalNode PROC_CALL(int i) {
 			return getToken(GramaticaParser.PROC_CALL, i);
 		}
+		public List<TerminalNode> ID() { return getTokens(GramaticaParser.ID); }
+		public TerminalNode ID(int i) {
+			return getToken(GramaticaParser.ID, i);
+		}
+		public List<TerminalNode> CONSTINT() { return getTokens(GramaticaParser.CONSTINT); }
+		public TerminalNode CONSTINT(int i) {
+			return getToken(GramaticaParser.CONSTINT, i);
+		}
+		public List<TerminalNode> CONSTREAL() { return getTokens(GramaticaParser.CONSTREAL); }
+		public TerminalNode CONSTREAL(int i) {
+			return getToken(GramaticaParser.CONSTREAL, i);
+		}
+		public List<TerminalNode> CONSTLI() { return getTokens(GramaticaParser.CONSTLI); }
+		public TerminalNode CONSTLI(int i) {
+			return getToken(GramaticaParser.CONSTLI, i);
+		}
+		public List<TerminalNode> COMENTARIO1L() { return getTokens(GramaticaParser.COMENTARIO1L); }
+		public TerminalNode COMENTARIO1L(int i) {
+			return getToken(GramaticaParser.COMENTARIO1L, i);
+		}
+		public List<TerminalNode> COMENTARIOVL() { return getTokens(GramaticaParser.COMENTARIOVL); }
+		public TerminalNode COMENTARIOVL(int i) {
+			return getToken(GramaticaParser.COMENTARIOVL, i);
+		}
 		public List<TerminalNode> SALTAR() { return getTokens(GramaticaParser.SALTAR); }
 		public TerminalNode SALTAR(int i) {
 			return getToken(GramaticaParser.SALTAR, i);
@@ -291,6 +291,7 @@ public class GramaticaParser extends Parser {
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 137438953470L) != 0) );
+
 			}
 		}
 		catch (RecognitionException re) {
@@ -305,13 +306,14 @@ public class GramaticaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001$\b\u0002\u0000\u0007\u0000\u0001\u0000\u0004\u0000\u0004"+
-		"\b\u0000\u000b\u0000\f\u0000\u0005\u0001\u0000\u0000\u0000\u0001\u0000"+
-		"\u0000\u0001\u0001\u0000\u0001$\u0007\u0000\u0003\u0001\u0000\u0000\u0000"+
-		"\u0002\u0004\u0007\u0000\u0000\u0000\u0003\u0002\u0001\u0000\u0000\u0000"+
-		"\u0004\u0005\u0001\u0000\u0000\u0000\u0005\u0003\u0001\u0000\u0000\u0000"+
-		"\u0005\u0006\u0001\u0000\u0000\u0000\u0006\u0001\u0001\u0000\u0000\u0000"+
-		"\u0001\u0005";
+		"\u0004\u0001$\n\u0002\u0000\u0007\u0000\u0001\u0000\u0004\u0000\u0004"+
+		"\b\u0000\u000b\u0000\f\u0000\u0005\u0001\u0000\u0001\u0000\u0001\u0000"+
+		"\u0000\u0000\u0001\u0000\u0000\u0001\u0001\u0000\u0001$\t\u0000\u0003"+
+		"\u0001\u0000\u0000\u0000\u0002\u0004\u0007\u0000\u0000\u0000\u0003\u0002"+
+		"\u0001\u0000\u0000\u0000\u0004\u0005\u0001\u0000\u0000\u0000\u0005\u0003"+
+		"\u0001\u0000\u0000\u0000\u0005\u0006\u0001\u0000\u0000\u0000\u0006\u0007"+
+		"\u0001\u0000\u0000\u0000\u0007\b\u0006\u0000\uffff\uffff\u0000\b\u0001"+
+		"\u0001\u0000\u0000\u0000\u0001\u0005";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
