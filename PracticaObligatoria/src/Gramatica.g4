@@ -4,47 +4,59 @@ grammar Gramatica;
 
 }
 
-axioma:(PRG|BLQ|DCLLIST|SENTLIST|SENTLISTP|DCL|DEFCTE|CTELIST|CTELISTP|SIMPVALUE|DEFVAR|DEFVARLIST|DEFVARLISTP|VARLIST|DEFPROC|DEFFUN|FORMAL_PARAMLIST|FORMAL_PARAM|TBAS|SENT|ASIG|EXP|EXPP|OP|OPARIT|FACTOR|SUBPARAMLIST|EXPLIST|PROC_CALL|ID|CONSTINT|CONSTREAL|CONSTLI|COMENTARIO1L|COMENTARIOVL|SALTAR)+{};
-
-ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]+{};
+axioma:(prg);
+ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};
 CONSTINT:('+'|'-')? [0-9]+{};
 CONSTREAL: ('+'|'-')? [0-9]+ ('.'|(('e'|'E')('+'|'-')?)|'.'[0-9]+ (('e'|'E')('+'|'-')?)) [0-9]+{};
-CONSTLI:('\'')([a-no-zA-NO-Z.,_0-9]+ ('\''))+ ('\'') {};
+CONSTLI: '\'' ( ~['\r\n] |'\'' '\'')* '\'' {};
+//CONSTLI: '\'' [a-no-zA-NO-Z.,_0-9 ]* '\'' {};
 COMENTARIO1L: ('{') [~\n]+ ('}') {}; // No debe reconocer saltos de lineas
 COMENTARIOVL: ('*') [~*]+ ('*') {};
 
-PRG: ('program') (ID) (';') (BLQ) ('.');
-BLQ: (DCLLIST) ('begin') (SENTLIST) ('end');
-DCLLIST: ('ʎ') |  ((DCL) (DCLLIST));
-SENTLIST: (SENT)  (SENTLISTP) ;
-SENTLISTP: ((SENT) (SENTLISTP)| ('ʎ'));
+prg: 'program' ID ';' blq '.'; // [\n]
+blq: dcllist 'begin' sentlist 'end';
+dcllist:  (dcl dcllist)?;
+sentlist: sent  sentlistp ;
+sentlistp: (sent sentlistp)?;
 
-DCL:(DEFCTE | DEFVAR | DEFPROC | DEFFUN);
-DEFCTE: ('CONST') (CTELIST);
-CTELIST: ((ID) ('=') (SIMPVALUE) (';')) | ((ID) ('=') SIMPVALUE (';') (CTELISTP) );
-CTELISTP: ((ID) ('=') SIMPVALUE (';') (CTELISTP)) | ('ʎ');
-SIMPVALUE: CONSTINT| CONSTREAL| CONSTLI;
-DEFVAR: ('VAR') (DEFVARLIST) (';');
-DEFVARLIST : ((VARLIST) (':') (TBAS)) | ((';') (VARLIST) (':') (TBAS)(DEFVARLISTP));
-DEFVARLISTP : (';') (VARLIST) (':') (TBAS) (DEFVARLISTP) | ('ʎ');
-VARLIST: ID | (ID) (',') (VARLIST);
-DEFPROC: ('PROCEDURE') (ID) (FORMAL_PARAMLIST) (';') (BLQ) (';');
-DEFFUN: ('FUNCTION') (ID) (FORMAL_PARAMLIST) (':') (TBAS) (';') (BLQ) (';');
-FORMAL_PARAMLIST: ('ʎ') | (('(') (FORMAL_PARAM) (')'));
-FORMAL_PARAM: ((VARLIST) (':') (TBAS))| ((VARLIST) (':') (TBAS) (';') (FORMAL_PARAM));
-TBAS: 'INTEGER' | 'REAL';
+dcl:defcte | defvar | defproc | deffun;
+defcte: 'CONST'|'const' ctelist;
+ctelist: ID  '=' simpvalue ';' | ID '=' simpvalue ';' ctelistp;
+ctelistp: (ID '=' simpvalue ';' ctelistp)?;
+simpvalue: CONSTINT| CONSTREAL| CONSTLI;
+defvar: 'VAR'|'var' defvarlist ';';
+defvarlist : varlist ':' tbas defvarlistp;
+defvarlistp : (';' varlist ':' tbas defvarlistp)?;
+varlist: ID | ID ',' varlist;
+defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';';
+deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';';
+formal_paramlist: ('(' formalparam ')')?;
+formalparam: varlist ':' tbas| varlist ':' tbas ';' formalparam;
+tbas: 'INTEGER' | 'REAL';
 
-SENT: ((ASIG) (';')) | ((PROC_CALL) (';'));
-ASIG: (ID) (':=') (EXP);
-EXP: FACTOR (EXPP);
-EXPP: ((OP) (EXPP) (EXP)) | ('ʎ');
-OP: OPARIT;
-OPARIT: '+' | '-'| '*' | 'DIV' | 'MOD';
-FACTOR: SIMPVALUE | (('(') (EXP) (')')) | ((ID) (SUBPARAMLIST));
-SUBPARAMLIST: ('ʎ') | (('(') (EXPLIST) (')'));
-EXPLIST: EXP | ((EXP) (',') (EXPLIST));
-PROC_CALL: (ID) (SUBPARAMLIST);
+sent: asig ';' | proc_call ';';
+asig: ID ':=' exp;
+exp: factor expp;
+expp: (op expp exp)?;
+op: oparit;
+oparit: '+' | '-' | '*' | 'div' | 'mod';
+factor: simpvalue | '(' exp ')' | ID subparamlist;
+subparamlist: ('(' explist ')')?;
+explist: exp | exp ',' explist;
+proc_call: ID subparamlist;
 
 SALTAR: [ \t\r\n]+ -> skip;
+
+/*
+program: defines partes;
+defines: ʎ | '#define' ID ctes defines;
+ctes: constint | constfloat | constlit;
+partes: part partes | part;
+part: type restpart;
+restpart: ID '(' listparam ')' blq | ID '(' 'void' ')' blq;
+blq: '{' sentlist '}';
+listparam: listparam ',' type ID | type ID;
+type: 'void' | 'int' | 'float';
+*/
 
 
