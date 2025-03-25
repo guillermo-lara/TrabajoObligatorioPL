@@ -15,33 +15,33 @@ COMENTARIOVL: ('*') [~*]+ ('*') {};
 
 prg: 'program' ID ';' blq '.'; // [\n]
 blq: dcllist 'begin' sentlist 'end';
-dcllist:  dcl dcllist |;
+dcllist:  dcl dcllist | ;
 sentlist: sent  sentlistp ;
-sentlistp: sent sentlistp |;
+sentlistp: sent sentlistp | ;
 
 dcl:defcte | defvar | defproc | deffun;
 defcte: 'CONST'|'const' ctelist;
-ctelist: ID  '=' simpvalue ';' | ID '=' simpvalue ';' ctelistp;
-ctelistp: ID '=' simpvalue ';' ctelistp |;
-simpvalue: CONSTINT| CONSTREAL| CONSTLI;
+ctelist: ID '=' simpvalue ';' ctelistp;
+ctelistp: ID '=' simpvalue ';' ctelistp | ;
+simpvalue: CONSTINT | CONSTREAL | CONSTLI;
 defvar: 'VAR'|'var' defvarlist ';';
 defvarlist : varlist ':' tbas defvarlistp;
-defvarlistp : ';' varlist ':' tbas defvarlistp |;
+defvarlistp : ';' varlist ':' tbas defvarlistp | ;
 varlist: ID | ID ',' varlist;
 defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';';
 deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';';
-formal_paramlist: '(' formalparam ')' |;
-formalparam: varlist ':' tbas| varlist ':' tbas ';' formalparam;
+formal_paramlist: '(' formalparam ')' | ;
+formalparam: varlist ':' tbas | varlist ':' tbas ';' formalparam;
 tbas: 'INTEGER' | 'REAL';
 
 sent: asig ';' | proc_call ';';
 asig: ID ':=' exp;
 exp: factor expp;
-expp: op expp exp |;
+expp: op expp exp | ;
 op: oparit;
 oparit: '+' | '-' | '*' | 'div' | 'mod';
 factor: simpvalue | '(' exp ')' | ID subparamlist;
-subparamlist: '(' explist ')' |;
+subparamlist: '(' explist ')' | ;
 explist: exp | exp ',' explist;
 proc_call: ID subparamlist;
 
