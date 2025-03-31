@@ -27,11 +27,13 @@ simpvalue: CONSTINT | CONSTREAL | CONSTLI;
 defvar: 'VAR'|'var' defvarlist ';';
 defvarlist : varlist ':' tbas defvarlistp;
 defvarlistp : ';' varlist ':' tbas defvarlistp | ;
-varlist: ID | ID ',' varlist;
+varlist: ID varlistaux;
+varlistaux: ',' varlist| ;
 defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';';
 deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';';
 formal_paramlist: '(' formalparam ')' | ;
-formalparam: varlist ':' tbas | varlist ':' tbas ';' formalparam;
+formalparam: varlist ':' tbas formalparamaux;
+formalparamaux: ';' formalparam | ;
 tbas: 'INTEGER' | 'REAL';
 
 sent: asig ';' | proc_call ';';
@@ -42,7 +44,8 @@ op: oparit;
 oparit: '+' | '-' | '*' | 'div' | 'mod';
 factor: simpvalue | '(' exp ')' | ID subparamlist;
 subparamlist: '(' explist ')' | ;
-explist: exp | exp ',' explist;
+explist: exp explistaux;
+explistaux: ',' explist | ;
 proc_call: ID subparamlist;
 
 SALTAR: [ \t\r\n]+ -> skip;

@@ -157,6 +157,16 @@ public interface GramaticaListener extends ParseTreeListener {
 	 */
 	void exitVarlist(GramaticaParser.VarlistContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GramaticaParser#varlistaux}.
+	 * @param ctx the parse tree
+	 */
+	void enterVarlistaux(GramaticaParser.VarlistauxContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GramaticaParser#varlistaux}.
+	 * @param ctx the parse tree
+	 */
+	void exitVarlistaux(GramaticaParser.VarlistauxContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GramaticaParser#defproc}.
 	 * @param ctx the parse tree
 	 */
@@ -196,6 +206,16 @@ public interface GramaticaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFormalparam(GramaticaParser.FormalparamContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GramaticaParser#formalparamaux}.
+	 * @param ctx the parse tree
+	 */
+	void enterFormalparamaux(GramaticaParser.FormalparamauxContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GramaticaParser#formalparamaux}.
+	 * @param ctx the parse tree
+	 */
+	void exitFormalparamaux(GramaticaParser.FormalparamauxContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GramaticaParser#tbas}.
 	 * @param ctx the parse tree
@@ -296,6 +316,16 @@ public interface GramaticaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExplist(GramaticaParser.ExplistContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GramaticaParser#explistaux}.
+	 * @param ctx the parse tree
+	 */
+	void enterExplistaux(GramaticaParser.ExplistauxContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GramaticaParser#explistaux}.
+	 * @param ctx the parse tree
+	 */
+	void exitExplistaux(GramaticaParser.ExplistauxContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GramaticaParser#proc_call}.
 	 * @param ctx the parse tree

@@ -100,6 +100,12 @@ public interface GramaticaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVarlist(GramaticaParser.VarlistContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#varlistaux}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarlistaux(GramaticaParser.VarlistauxContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link GramaticaParser#defproc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -123,6 +129,12 @@ public interface GramaticaVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFormalparam(GramaticaParser.FormalparamContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#formalparamaux}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFormalparamaux(GramaticaParser.FormalparamauxContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link GramaticaParser#tbas}.
 	 * @param ctx the parse tree
@@ -183,6 +195,12 @@ public interface GramaticaVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExplist(GramaticaParser.ExplistContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#explistaux}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExplistaux(GramaticaParser.ExplistauxContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link GramaticaParser#proc_call}.
 	 * @param ctx the parse tree
