@@ -207,4 +207,58 @@ public interface GramaticaVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProc_call(GramaticaParser.Proc_callContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#program}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProgram(GramaticaParser.ProgramContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#defines}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefines(GramaticaParser.DefinesContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#ctes}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCtes(GramaticaParser.CtesContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#partes}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPartes(GramaticaParser.PartesContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#part}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPart(GramaticaParser.PartContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#restpart}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRestpart(GramaticaParser.RestpartContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#bloque}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBloque(GramaticaParser.BloqueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#listparam}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitListparam(GramaticaParser.ListparamContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GramaticaParser#type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitType(GramaticaParser.TypeContext ctx);
 }

@@ -8,18 +8,18 @@ dcllist returns [String dcllis]:  dcl dcllist {$dcllis = $dcl.dcll +$dcllist.dcl
 sentlist returns [String senlis]: sent  sentlistp {$senlis = $sent.sen +$sentlistp.senlisp;};
 sentlistp returns [String senlisp]: sent sentlistp {$senlisp = $sent.sen +$sentlistp.senlisp;}| {$senlisp = "";};
 
-dcl returns [String dcll]:defcte | defvar | defproc | deffun;
-defcte: 'CONST'|'const' ctelist {$ctelist.ctelis;};
-ctelist returns [String ctelis]: ID '=' simpvalue ';' ctelistp {$ctelis = $ID.text +" = " +$simpvalue.simp +" ; " +$ctelistp.ctelisp;};
-ctelistp returns [String ctelisp]: ID '=' simpvalue ';' ctelistp {$ctelisp = $ID.text +" = "+ $simpvalue.simp +" ; " +$ctelistp.ctelisp;}| {$ctelisp = "";} ;
+dcl returns [String dcll]:defcte {$dcll = $defcte.defconst} | defvar {$dcll = $defvar.defvari}| defproc {$dcll = $defproc.defproceso} | deffun {$dcll = $deffun.deffuncion};
+defcte returns [String defconst]: 'CONST'|'const' ctelist {$defconst = "#define" $ctelist.ctelis;};
+ctelist returns [String ctelis]: ID '=' simpvalue ';' ctelistp {$ctelis = $ID.text +" " +$simpvalue.simp +\n +"#define " +$ctelistp.ctelisp;}; //$ctelis = $ID.text +" = " +$simpvalue.simp +" ; " +$ctelistp.ctelisp;
+ctelistp returns [String ctelisp]: ID '=' simpvalue ';' ctelistp {$ctelisp = $ID.text +" "+ $simpvalue.simp +\n +"#define " +$ctelistp.ctelisp;}| {$ctelisp = "";} ;
 simpvalue returns [String simp]: CONSTINT {$simp = $CONSTINT.text;} | CONSTREAL {$simp = $CONSTREAL.text;} | CONSTLI {$simp = $CONSTLI.text;};
-defvar: 'VAR'|'var' defvarlist ';' {$defvarlist.defvarlis;};
-defvarlist returns [String defvarlis]: varlist ':' tbas defvarlistp {$defvarlis = $tbas.vlex + $varlist.varlis ;}; //$defvarlis = $varlist.varlis +' : ' +$tbas.vlex +$defvarlistp.defvarlisp;
-defvarlistp returns [String defvarlisp]: ';' varlist ':' tbas defvarlistp {$defvarlisp = "; " +$varlist.varlis +" : " +$tbas.vlex +$defvarlistp.defvarlisp;} | {$defvarlisp= "";};
+defvar returns [String defvari]: 'VAR'|'var' defvarlist ';' {$defvari = $defvarlist.defvarlis;};
+defvarlist returns [String defvarlis]: varlist ':' tbas defvarlistp {$defvarlis = $tbas.vlex + $varlist.varlis +$defvarlistp.defvarlisp;}; //$defvarlis = $varlist.varlis +' : ' +$tbas.vlex +$defvarlistp.defvarlisp; LUEGO PASO A $defvarlis = $tbas.vlex + $varlist.varlis ;
+defvarlistp returns [String defvarlisp]: ';' varlist ':' tbas defvarlistp {$defvarlisp = ";" +\n +$tbas.vlex +$varlist.varlis +$defvarlistp.defvarlisp;} | {$defvarlisp= "";}; //$defvarlisp = "; " +$varlist.varlis +" : " +$tbas.vlex +$defvarlistp.defvarlisp;
 varlist returns [String varlis]: ID varlistaux {$varlis = $ID.text + $varlistaux.varlisaux;};
 varlistaux returns [String varlisaux]: ',' varlist {$varlisaux = ", " +$varlist.varlis;} | {$varlisaux = "";};
-defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';' {"void " +$ID.text +" " +$formal_paramlist.for_paramli;};
-deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';' {$tbas.vlex +$ID.text +" " +$formal_paramlist.for_paramli;};//f = new Function($ID.text, $tbas.vlex...) creo que el tbas no tendria nada que ver
+defproc returns [String defproceso]: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';' {$defproceso ="void " +$ID.text +" " +$formal_paramlist.for_paramli +\n +"{" +\n +$blq.bloq +\n +"}";}; // añadido despues +\n +"{" +\n +$blq.bloq +\n +"}"
+deffun returns [String deffuncion]: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';' {$deffuncion =$tbas.vlex +$ID.text +" " +$formal_paramlist.for_paramli +\n +"{" +\n +$blq.bloq +\n +"}";};//f = new Function($ID.text, $tbas.vlex...) creo que el tbas no tendria nada que ver  // añadido despues +\n +"{" +\n +$blq.bloq +\n +"}"
 formal_paramlist returns [String for_paramli]: '(' formalparam ')' {$for_paramli = "( " +$formalparam.for_para +" )";} | {$for_paramli = "";} | {$for_paramli="( " +"void" +" )";};
 formalparam returns [String for_para]: varlist ':' tbas formalparamaux {$for_para = $varlist.varlis +" :";};
 formalparamaux returns [String for_paraaux]: ';' formalparam {$for_paraaux = "; "+$formalparam.for_para;} | {$for_paraaux = "";} ;
@@ -36,6 +36,17 @@ subparamlist returns [String subparalis]: '(' explist ')' {$subparalis = "( "+$e
 explist returns [String explis]: exp explistaux {$explis = $exp.ex +$explistaux.explisaux;};
 explistaux returns [String explisaux]: ',' explist {$explisaux = ", " +$explist.explis;} | {$explisaux = "";};
 proc_call returns [String procall]: ID subparamlist {$procall = $ID.text +" " +$subparamlist.subparalis;};
+
+program: defines partes;
+defines: '#define' ID ctes defines |;
+ctes: CONSTINT | CONSTREAL | CONSTLI;
+partes: part partes | part;
+part: type restpart;
+restpart: ID '(' listparam ')' bloque| ID '(' 'void' ')' bloque;
+bloque: '{' sentlist '}';
+listparam: listparam ',' type ID | type ID;
+type: 'void' | 'int' | 'float';
+
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};
 CONSTINT:('+'|'-')? [0-9]+{};
