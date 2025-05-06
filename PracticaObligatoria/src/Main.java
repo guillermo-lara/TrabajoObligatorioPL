@@ -10,7 +10,6 @@ public class Main {
             GramaticaLexer lexer = new GramaticaLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             GramaticaParser parser = new GramaticaParser(tokens);
-
             parser.axioma();
 
         } catch (org.antlr.v4.runtime.RecognitionException e) {
