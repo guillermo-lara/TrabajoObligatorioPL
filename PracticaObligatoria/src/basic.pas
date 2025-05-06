@@ -1,0 +1,5 @@
+program prueba
+
+begin
+end.
+

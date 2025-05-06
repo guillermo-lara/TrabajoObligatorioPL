@@ -17,6 +17,15 @@ public class Main {
             GramaticaLexer lexer = new GramaticaLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             GramaticaParser parser = new GramaticaParser(tokens);
+            parser.removeErrorListeners(); // Quitar el por defecto
+            parser.addErrorListener(new BaseErrorListener() {
+                @Override
+                public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+                                        int line, int charPositionInLine, String msg, RecognitionException e) {
+                    System.err.printf("Error de sintaxis en línea %d:%d - %s%n", line, charPositionInLine, msg);
+                }
+            });
+
 
             // Crear y recorrer el árbol sintáctico
             ParseTree tree = parser.prg();  // Asumimos que 'prg' es la regla inicial
@@ -44,7 +53,8 @@ public class Main {
         } catch (IOException e) {
             System.err.println("Error de entrada/salida: " + e.getMessage());
         } catch (RuntimeException e) {
-            System.err.println("Error en tiempo de ejecución: " + e.getMessage());
+            System.err.println("Error en tiempo de ejecución: ");
+            e.printStackTrace();
         }
     }
 }

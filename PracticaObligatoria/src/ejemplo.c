@@ -1,18 +1,20 @@
+#include <stdio.h>
+
+
+  int a;
+  int b;
+  int c;
+  int d;
+  int e;
+  int f;
+  int g;
+
 void ShowValues(int x, int y) {
-}
-
 int Multiply(int n1, int n2) {
-  Multiply = n1*n2;
-}
-
 float CircleArea(float radius) {
-  CircleArea = PI*radius*radius;
-  a = 5;
-  b = 10;
-  c = Multiply(a,b);
-  r = 7.5;
-  area = CircleArea(r);
-}
-
+  printf("%f %f ", 'First value: ', x);
+  printf("%f %f ", 'Second value: ', y);
 void main(void) {
+}
+  return 0;
 }
