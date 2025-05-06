@@ -1,41 +1,58 @@
 grammar Gramatica;
 
-axioma: prg;
+@members{
 
-prg: 'program' ID ';' blq '.'; // [\n]  Desde aqui se debería llamar a imprimir
-blq returns [String bloq]: dcllist 'begin' sentlist 'end' {$bloq = $dcllist.dcllis +" begin" + $sentlist.senlis +" end";};
-dcllist returns [String dcllis]:  dcl dcllist {$dcllis = $dcl.dcll +$dcllist.dcllis;}| {$dcllis = "";} ;
-sentlist returns [String senlis]: sent  sentlistp {$senlis = $sent.sen +$sentlistp.senlisp;};
-sentlistp returns [String senlisp]: sent sentlistp {$senlisp = $sent.sen +$sentlistp.senlisp;}| {$senlisp = "";};
+}
 
-dcl returns [String dcll]:defcte | defvar | defproc | deffun;
-defcte: 'CONST'|'const' ctelist {$ctelist.ctelis;};
-ctelist returns [String ctelis]: ID '=' simpvalue ';' ctelistp {$ctelis = $ID.text +" = " +$simpvalue.simp +" ; " +$ctelistp.ctelisp;};
-ctelistp returns [String ctelisp]: ID '=' simpvalue ';' ctelistp {$ctelisp = $ID.text +" = "+ $simpvalue.simp +" ; " +$ctelistp.ctelisp;}| {$ctelisp = "";} ;
-simpvalue returns [String simp]: CONSTINT {$simp = $CONSTINT.text;} | CONSTREAL {$simp = $CONSTREAL.text;} | CONSTLI {$simp = $CONSTLI.text;};
-defvar: 'VAR'|'var' defvarlist ';' {$defvarlist.defvarlis;};
-defvarlist returns [String defvarlis]: varlist ':' tbas defvarlistp {$defvarlis = $tbas.vlex + $varlist.varlis ;}; //$defvarlis = $varlist.varlis +' : ' +$tbas.vlex +$defvarlistp.defvarlisp;
-defvarlistp returns [String defvarlisp]: ';' varlist ':' tbas defvarlistp {$defvarlisp = "; " +$varlist.varlis +" : " +$tbas.vlex +$defvarlistp.defvarlisp;} | {$defvarlisp= "";};
-varlist returns [String varlis]: ID varlistaux {$varlis = $ID.text + $varlistaux.varlisaux;};
-varlistaux returns [String varlisaux]: ',' varlist {$varlisaux = ", " +$varlist.varlis;} | {$varlisaux = "";};
-defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';' {"void " +$ID.text +" " +$formal_paramlist.for_paramli;};
-deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';' {$tbas.vlex +$ID.text +" " +$formal_paramlist.for_paramli;};//f = new Function($ID.text, $tbas.vlex...) creo que el tbas no tendria nada que ver
-formal_paramlist returns [String for_paramli]: '(' formalparam ')' {$for_paramli = "( " +$formalparam.for_para +" )";} | {$for_paramli = "";} | {$for_paramli="( " +"void" +" )";};
-formalparam returns [String for_para]: varlist ':' tbas formalparamaux {$for_para = $varlist.varlis +" :";};
-formalparamaux returns [String for_paraaux]: ';' formalparam {$for_paraaux = "; "+$formalparam.for_para;} | {$for_paraaux = "";} ;
-tbas returns [String vlex]: 'INTEGER' {$vlex = "int ";} | 'REAL' {$vlex = "float ";};
+axioma:(prg);
 
-sent returns [String sen]: asig ';' {$sen = $asig.asi +" ;";} | proc_call ';' {$sen = $proc_call.procall +" ;";};
-asig returns [String asi]: ID ':=' exp {$asi = $ID.text +" = " +$exp.ex ;};
-exp returns [String ex]: factor expp {$ex = $factor.fact + $expp.exppp;};
-expp returns [String exppp]: op expp exp {$exppp = $op.opp +" " +$exp.ex +" " +$expp.exppp;} | {$exppp = "";};
-op returns [String opp]: oparit {$opp = $oparit.valex;};
-oparit returns [String valex]: '+' {$valex = "+";} | '-' {$valex = "-";} | '*' {$valex = "*";}| 'div' {$valex = "/";} | 'mod' {$valex = "%";};
-factor returns [String fact]: simpvalue {$fact = $simpvalue.simp;} | '(' exp ')' {$fact = "( "+ $exp.ex +" )";} | ID subparamlist {$fact = $ID.text +$subparamlist.subparalis;};
-subparamlist returns [String subparalis]: '(' explist ')' {$subparalis = "( "+$explist.explis+" )";} | {$subparalis = "";};
-explist returns [String explis]: exp explistaux {$explis = $exp.ex +$explistaux.explisaux;};
-explistaux returns [String explisaux]: ',' explist {$explisaux = ", " +$explist.explis;} | {$explisaux = "";};
-proc_call returns [String procall]: ID subparamlist {$procall = $ID.text +" " +$subparamlist.subparalis;};
+
+prg: 'program' ID ';' blq '.'; // [\n]
+blq: dcllist 'begin' sentlist 'end';
+dcllist:  dcl dcllist | ;
+sentlist: sent  sentlistp ;
+sentlistp: sent sentlistp | ;
+
+dcl:defcte | defvar | defproc | deffun;
+defcte: 'CONST'|'const' ctelist;
+ctelist: ID '=' simpvalue ';' ctelistp;
+ctelistp: ID '=' simpvalue ';' ctelistp | ;
+simpvalue: CONSTINT | CONSTREAL | CONSTLI;
+defvar: 'VAR'|'var' defvarlist ';';
+defvarlist : varlist ':' tbas defvarlistp;
+defvarlistp : ';' varlist ':' tbas defvarlistp | ;
+varlist: ID varlistaux;
+varlistaux: ',' varlist| ;
+defproc: 'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';';
+deffun: 'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';';
+formal_paramlist: '(' formalparam ')' | ;
+formalparam: varlist ':' tbas formalparamaux;
+formalparamaux: ';' formalparam | ;
+tbas: 'INTEGER' | 'REAL';
+
+sent: asig ';' | proc_call ';';
+asig: ID ':=' exp;
+exp: factor expp;
+expp: op expp exp | ;
+op: oparit;
+oparit: '+' | '-' | '*' | 'div' | 'mod';
+factor: simpvalue | '(' exp ')' | ID subparamlist;
+subparamlist: '(' explist ')' | ;
+explist: exp explistaux;
+explistaux: ',' explist | ;
+proc_call: ID subparamlist;
+
+
+program: defines partes;
+defines: '#define' ID ctes defines |;
+ctes: CONSTINT | CONSTREAL | CONSTLI;
+partes: part partes | part;
+part: type restpart;
+restpart: ID '(' listparam ')' bloque| ID '(' 'void' ')' bloque;
+bloque: '{' sentlist '}';
+listparam: listparam ',' type ID | type ID;
+type: 'void' | 'int' | 'float';
+
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};
 CONSTINT:('+'|'-')? [0-9]+{};
@@ -43,9 +60,17 @@ CONSTREAL: ('+'|'-')? [0-9]+ ('.'|(('e'|'E')('+'|'-')?)|'.'[0-9]+ (('e'|'E')('+'
 CONSTLI: '\'' ( ~['\r\n] |'\\' '\'')* '\'' {};
 //CONSTLI: '\'' [a-no-zA-NO-Z.,_0-9 ]* '\'' {};
 COMENTARIO1L: ('{') [~\n]+ ('}') {}; // No debe reconocer saltos de lineas
-COMENTARIOVL: ('*') [~*]+ ('*') {};
+COMENTARIOVL: ('*') [~]+ ('*') {};
 SALTAR: [ \t\r\n]+ -> skip;
 
-
-
-
+/*
+program: defines partes;
+defines: ʎ | '#define' ID ctes defines;
+ctes: constint | constfloat | constlit;
+partes: part partes | part;
+part: type restpart;
+restpart: ID '(' listparam ')' blq | ID '(' 'void' ')' blq;
+blq: '{' sentlist '}';
+listparam: listparam ',' type ID | type ID;
+type: 'void' | 'int' | 'float';
+*/

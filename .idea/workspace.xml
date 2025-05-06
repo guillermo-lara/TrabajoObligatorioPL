@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b0f230f8-952b-477c-a54d-89ba6daa84a8" name="Changes" comment="CORRECTO">
+      <change afterPath="$PROJECT_DIR$/PracticaObligatoria/src/TraductorListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PracticaObligatoria/src/Gramatica.g4" beforeDir="false" afterPath="$PROJECT_DIR$/PracticaObligatoria/src/Gramatica.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PracticaObligatoria/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/PracticaObligatoria/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PracticaObligatoria/src/ejemplo.c" beforeDir="false" afterPath="$PROJECT_DIR$/PracticaObligatoria/gen/TraductorLister.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,12 +25,12 @@
     &quot;assignee&quot;: &quot;dvcoronado&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/guillermo-lara/TrabajoObligatorioPL.git&quot;,
-    &quot;accountId&quot;: &quot;0a246904-0c1c-4331-9fa2-d0030734d5ab&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/guillermo-lara/TrabajoObligatorioPL.git",
+    "accountId": "57234147-f911-4a93-b57e-fc900f4a2f69"
   }
-}</component>
+}]]></component>
   <component name="ProjectCodeStyleSettingsMigration">
     <option name="version" value="2" />
   </component>
@@ -34,6 +38,7 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2tX1Fl8QmfMgXg5XKdatdJAH6Gj" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -41,11 +46,31 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "R:/Documents/PL"
+    "last_opened_file_path": "C:/Users/guill/Escritorio/PL VERSION BUENA/PracticaObligatoria/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\guill\Escritorio\PL VERSION BUENA\PracticaObligatoria\src" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -54,6 +79,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1740483504247</updated>
+      <workItem from="1746524417741" duration="6890000" />
     </task>
     <task id="LOCAL-00001" summary="CORRECTO">
       <option name="closed" value="true" />
@@ -65,6 +91,9 @@
     </task>
     <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">

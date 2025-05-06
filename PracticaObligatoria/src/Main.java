@@ -1,29 +1,50 @@
 import java.io.*;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
 
 public class Main {
     public static void main(String[] args) {
-        try {
+        if (args.length != 1) {
+            System.err.println("Uso: java -jar miPrograma.jar archivo_entrada.pas");
+            System.exit(1);
+        }
 
-            // aplicar la gramatica a la frase
+        try {
+            // Entrada del archivo fuente
             CharStream input = CharStreams.fromFileName(args[0]);
+
+            // Análisis léxico y sintáctico
             GramaticaLexer lexer = new GramaticaLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             GramaticaParser parser = new GramaticaParser(tokens);
-            parser.axioma();
 
-        } catch (org.antlr.v4.runtime.RecognitionException e) {
-//Fallo al reconocer la entrada
-            System.err.println("REC " + e.getMessage());
-        } //catch (IOException e) {
-//Fallo de entrada/salida
-        //System.err.println("IO " + e.getMessage());
-        //}
-        catch (java.lang.RuntimeException e) {
-//Cualquier otro fallo
-            System.err.println("RUN " + e.getMessage());
+            // Crear y recorrer el árbol sintáctico
+            ParseTree tree = parser.prg();  // Asumimos que 'prg' es la regla inicial
+
+            ParseTreeWalker walker = new ParseTreeWalker();
+            TraductorListener listener = new TraductorListener();
+            walker.walk(listener, tree);
+
+            // Obtener código traducido
+            String codigoC = listener.getCodigoFinal();
+
+            // Guardar archivo de salida
+            String nombreArchivoEntrada = new File(args[0]).getName();
+            String nombreBase = nombreArchivoEntrada.replaceFirst("[.][^.]+$", ""); // quitar extensión
+            String nombreArchivoSalida = nombreBase + ".c";
+
+            try (PrintWriter out = new PrintWriter(nombreArchivoSalida)) {
+                out.print(codigoC);
+            }
+
+            System.out.println("Traducción completada. Archivo generado: " + nombreArchivoSalida);
+
+        } catch (RecognitionException e) {
+            System.err.println("Error de reconocimiento: " + e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("Error de entrada/salida: " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.err.println("Error en tiempo de ejecución: " + e.getMessage());
         }
     }
 }
