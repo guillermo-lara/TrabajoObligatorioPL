@@ -517,7 +517,7 @@ public class GramaticaParser extends Parser {
 				{
 				setState(116);
 				((DclContext)_localctx).defcte = defcte();
-				_localctx.dcll = ((DclContext)_localctx).defcte.defconst
+				((DclContext)_localctx).dcll =  ((DclContext)_localctx).defcte.defconst;
 				}
 				break;
 			case T__8:
@@ -526,7 +526,7 @@ public class GramaticaParser extends Parser {
 				{
 				setState(119);
 				((DclContext)_localctx).defvar = defvar();
-				_localctx.dcll = ((DclContext)_localctx).defvar.defvari
+				((DclContext)_localctx).dcll =  ((DclContext)_localctx).defvar.defvari;
 				}
 				break;
 			case T__12:
@@ -535,7 +535,7 @@ public class GramaticaParser extends Parser {
 				{
 				setState(122);
 				((DclContext)_localctx).defproc = defproc();
-				_localctx.dcll = ((DclContext)_localctx).defproc.defproceso
+				((DclContext)_localctx).dcll =  ((DclContext)_localctx).defproc.defproceso;
 				}
 				break;
 			case T__14:
@@ -544,7 +544,7 @@ public class GramaticaParser extends Parser {
 				{
 				setState(125);
 				((DclContext)_localctx).deffun = deffun();
-				_localctx.dcll = ((DclContext)_localctx).deffun.deffuncion
+				((DclContext)_localctx).dcll =  ((DclContext)_localctx).deffun.deffuncion;
 				}
 				break;
 			default:
@@ -609,7 +609,7 @@ public class GramaticaParser extends Parser {
 				match(T__6);
 				setState(132);
 				((DefcteContext)_localctx).ctelist = ctelist();
-				((DefcteContext)_localctx).defconst =  "#define" ((DefcteContext)_localctx).ctelist.ctelis;
+				((DefcteContext)_localctx).defconst =  "#define " +((DefcteContext)_localctx).ctelist.ctelis;
 				}
 				break;
 			default:
@@ -675,7 +675,7 @@ public class GramaticaParser extends Parser {
 			match(T__1);
 			setState(141);
 			((CtelistContext)_localctx).ctelistp = ctelistp();
-			((CtelistContext)_localctx).ctelis =  (((CtelistContext)_localctx).ID!=null?((CtelistContext)_localctx).ID.getText():null) +" " +((CtelistContext)_localctx).simpvalue.simp +\n +"#define " +((CtelistContext)_localctx).ctelistp.ctelisp;
+			((CtelistContext)_localctx).ctelis =  (((CtelistContext)_localctx).ID!=null?((CtelistContext)_localctx).ID.getText():null) +" " +((CtelistContext)_localctx).simpvalue.simp +"\n" +"#define " +((CtelistContext)_localctx).ctelistp.ctelisp;
 			}
 		}
 		catch (RecognitionException re) {
@@ -741,7 +741,7 @@ public class GramaticaParser extends Parser {
 				match(T__1);
 				setState(148);
 				((CtelistpContext)_localctx).ctelistp = ctelistp();
-				((CtelistpContext)_localctx).ctelisp =  (((CtelistpContext)_localctx).ID!=null?((CtelistpContext)_localctx).ID.getText():null) +" "+ ((CtelistpContext)_localctx).simpvalue.simp +\n +"#define " +((CtelistpContext)_localctx).ctelistp.ctelisp;
+				((CtelistpContext)_localctx).ctelisp =  (((CtelistpContext)_localctx).ID!=null?((CtelistpContext)_localctx).ID.getText():null) +" "+ ((CtelistpContext)_localctx).simpvalue.simp +"\n" +"#define " +((CtelistpContext)_localctx).ctelistp.ctelisp;
 				}
 				break;
 			case T__3:
@@ -1030,7 +1030,7 @@ public class GramaticaParser extends Parser {
 				((DefvarlistpContext)_localctx).tbas = tbas();
 				setState(180);
 				((DefvarlistpContext)_localctx).defvarlistp = defvarlistp();
-				((DefvarlistpContext)_localctx).defvarlisp =  ";" +\n +((DefvarlistpContext)_localctx).tbas.vlex +((DefvarlistpContext)_localctx).varlist.varlis +((DefvarlistpContext)_localctx).defvarlistp.defvarlisp;
+				((DefvarlistpContext)_localctx).defvarlisp =  ";" +"\n" +((DefvarlistpContext)_localctx).tbas.vlex +((DefvarlistpContext)_localctx).varlist.varlis +((DefvarlistpContext)_localctx).defvarlistp.defvarlisp;
 				}
 				break;
 			case 2:
@@ -1229,7 +1229,7 @@ public class GramaticaParser extends Parser {
 				((DefprocContext)_localctx).blq = blq();
 				setState(203);
 				match(T__1);
-				((DefprocContext)_localctx).defproceso = "void " +(((DefprocContext)_localctx).ID!=null?((DefprocContext)_localctx).ID.getText():null) +" " +((DefprocContext)_localctx).formal_paramlist.for_paramli +\n +"{" +\n +((DefprocContext)_localctx).blq.bloq +\n +"}";
+				((DefprocContext)_localctx).defproceso = "void " +(((DefprocContext)_localctx).ID!=null?((DefprocContext)_localctx).ID.getText():null) +" " +((DefprocContext)_localctx).formal_paramlist.for_paramli +"\n" +"{" +"\n" +((DefprocContext)_localctx).blq.bloq +"\n" +"}";
 				}
 				break;
 			default:
@@ -1316,7 +1316,7 @@ public class GramaticaParser extends Parser {
 				((DeffunContext)_localctx).blq = blq();
 				setState(216);
 				match(T__1);
-				((DeffunContext)_localctx).deffuncion = ((DeffunContext)_localctx).tbas.vlex +(((DeffunContext)_localctx).ID!=null?((DeffunContext)_localctx).ID.getText():null) +" " +((DeffunContext)_localctx).formal_paramlist.for_paramli +\n +"{" +\n +((DeffunContext)_localctx).blq.bloq +\n +"}";
+				((DeffunContext)_localctx).deffuncion = ((DeffunContext)_localctx).tbas.vlex +(((DeffunContext)_localctx).ID!=null?((DeffunContext)_localctx).ID.getText():null) +" " +((DeffunContext)_localctx).formal_paramlist.for_paramli +"\n" +"{" +"\n" +((DeffunContext)_localctx).blq.bloq +"\n" +"}";
 				}
 				break;
 			default:
