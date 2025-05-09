@@ -30,7 +30,10 @@ formalparam: varlist ':' tbas formalparamaux;
 formalparamaux: ';' formalparam | ;
 tbas: 'INTEGER' | 'REAL';
 
-sent: asig ';' | proc_call ';';
+sent: asig ';' | proc_call ';' | 'if' expcond 'then' blq 'else' blq
+| 'while' expcond 'do'   blq
+| 'repeat' blq 'until' expcond ';'
+| 'for' ID ':=' exp inc exp 'do' blq;
 asig: ID ':=' exp;
 exp: factor expp;
 expp: op expp exp | ;
@@ -52,6 +55,14 @@ restpart: ID '(' listparam ')' bloque| ID '(' 'void' ')' bloque;
 bloque: '{' sentlist '}';
 listparam: listparam ',' type ID | type ID;
 type: 'void' | 'int' | 'float';
+
+
+expcond: factorcond expcondp;
+expcondp: oplog expcond expcondp | ;
+oplog: 'or' | 'and';
+factorcond: exp opcomp exp | '(' expcond ')'| 'not' factorcond;
+opcomp: '<' | '>' | '<=' | '>=' | '=';
+inc: 'to' | 'downto';
 
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};

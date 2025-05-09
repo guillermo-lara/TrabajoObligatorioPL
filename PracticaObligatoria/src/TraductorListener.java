@@ -1,269 +1,314 @@
+/*
+ * Gramática del lenguaje fuente — Sentencias de control de flujo:
+ *
+ *   expcond    ::= expcond oplog expcond
+ *                | factorcond
+ *
+ *   oplog      ::= "or"
+ *                | "and"
+ *
+ *   factorcond ::= exp opcomp exp
+ *                | "(" expcond ")"
+ *                | "not" factorcond
+ *
+ *   opcomp     ::= "<" | ">" | "<=" | ">=" | "="
+ *
+ *   sent       ::= …                           (tus sent anteriores)
+ *                | "if"    expcond "then" blq "else" blq
+ *                | "while" expcond "do"   blq
+ *                | "repeat" blq "until" expcond ";"
+ *                | "for" ID ":=" exp inc exp "do" blq
+ *
+ *   inc        ::= "to" | "downto"
+ *
+ * Nota: Para la parte obligatoria sólo se procesan parámetros sin compactar
+ *       y el bloque principal se traduce a  void main(void) { … }.
+ */
+
 import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.*;
 
 public class TraductorListener extends GramaticaBaseListener {
 
-    private final StringBuilder salida = new StringBuilder();
-    private final StringBuilder defines = new StringBuilder();
-    private final StringBuilder globalVariables = new StringBuilder();
-    private final List<String> funcionesYProcedimientos = new ArrayList<>();
-    private final StringBuilder mainBody = new StringBuilder();
-    private final Stack<StringBuilder> pilaCuerpos = new Stack<>();
-    private final Stack<Boolean> esFuncion = new Stack<>();
-    private final Stack<StringBuilder> pilaBloques = new Stack<>();
-    private String nombrePrograma;
+    private final StringBuilder salida               = new StringBuilder();
+    private final StringBuilder defines              = new StringBuilder();
+    private final StringBuilder mainVarDecls         = new StringBuilder();
+    private final List<String>    funcionesYProcedimientos = new ArrayList<>();
+    private final StringBuilder   mainBody            = new StringBuilder();
 
-    @Override
-    public void enterPrg(GramaticaParser.PrgContext ctx) {
-        System.out.println("Entrando a enterPrg: " + ctx.getText());
-        if (ctx.ID() != null) {
-            nombrePrograma = ctx.ID().getText();
-        }
-    }
+    private final Stack<StringBuilder> pilaCuerpos     = new Stack<>();
+    private final Stack<Boolean>        esFuncion      = new Stack<>();
+    private final Stack<String>         nombreFuncion  = new Stack<>();
+
+    // Para detectar subrutinas y añadir paréntesis cuando no tengan args
+    private final Set<String> nombresSubrutinas      = new HashSet<>();
+
+    //----------------------------------------------------------------------
+    // 1) Constantes (#define)
+    //----------------------------------------------------------------------
 
     @Override
     public void exitDefcte(GramaticaParser.DefcteContext ctx) {
-        List<TerminalNode> ids = ctx.getTokens(GramaticaParser.ID);
-        List<GramaticaParser.SimpvalueContext> vals = new ArrayList<>();
+        procesarCtelist(ctx.ctelist());
+    }
 
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            if (ctx.getChild(i) instanceof GramaticaParser.CtelistContext) {
-                GramaticaParser.CtelistContext cte = (GramaticaParser.CtelistContext) ctx.getChild(i);
-                for (int j = 0; j < cte.getChildCount(); j++) {
-                    if (cte.getChild(j) instanceof GramaticaParser.SimpvalueContext) {
-                        vals.add((GramaticaParser.SimpvalueContext) cte.getChild(j));
-                    }
-                }
-            }
-        }
+    private void procesarCtelist(GramaticaParser.CtelistContext ctx) {
+        defines
+                .append("#define ")
+                .append(ctx.ID().getText())
+                .append(" ")
+                .append(ctx.simpvalue().getText())
+                .append("\n");
+        procesarCtelistp(ctx.ctelistp());
+    }
 
-        for (int i = 0; i < ids.size() && i < vals.size(); i++) {
-            defines.append("#define ")
-                    .append(ids.get(i).getText())
-                    .append(" ")
-                    .append(vals.get(i).getText())
-                    .append("\n");
-        }
+    private void procesarCtelistp(GramaticaParser.CtelistpContext ctx) {
+        if (ctx == null || ctx.ID() == null) return;
+        defines
+                .append("#define ")
+                .append(ctx.ID().getText())
+                .append(" ")
+                .append(ctx.simpvalue().getText())
+                .append("\n");
+        procesarCtelistp(ctx.ctelistp());
+    }
+
+    //----------------------------------------------------------------------
+    // 2) Procedimientos y funciones
+    //----------------------------------------------------------------------
+
+    @Override
+    public void enterDefproc(GramaticaParser.DefprocContext ctx) {
+        String id = ctx.ID().getText();
+        nombresSubrutinas.add(id);
+        nombreFuncion.push(id);
+        esFuncion.push(false);
+
+        String parametros = ctx.formal_paramlist() != null
+                ? extraerParametros(ctx.formal_paramlist().getText())
+                : "void";
+
+        StringBuilder cuerpo = new StringBuilder();
+        cuerpo.append("void ")
+                .append(id)
+                .append("(").append(parametros).append(") {\n");
+        pilaCuerpos.push(cuerpo);
     }
 
     @Override
     public void exitDefproc(GramaticaParser.DefprocContext ctx) {
-        String id = ctx.ID().getText();
-        String parametros = "void";
-        if (ctx.formal_paramlist() != null) {
-            parametros = extraerParametrosDesdeTexto(ctx.formal_paramlist().getText());
-        }
-        StringBuilder cuerpo = new StringBuilder();
-        cuerpo.append("void ").append(id).append("(").append(parametros).append(") {\n");
-        pilaCuerpos.push(cuerpo);
-        esFuncion.push(false);
-        funcionesYProcedimientos.add(cuerpo.toString()); //Igual esta mal
-        esFuncion.pop(); // Igual esta mal
+        StringBuilder cuerpo = pilaCuerpos.pop();
+        cuerpo.append("}\n");
+        funcionesYProcedimientos.add(cuerpo.toString());
+        esFuncion.pop();
+        nombreFuncion.pop();
+    }
 
+    @Override
+    public void enterDeffun(GramaticaParser.DeffunContext ctx) {
+        String id = ctx.ID().getText();
+        nombresSubrutinas.add(id);
+        nombreFuncion.push(id);
+        esFuncion.push(true);
+
+        String tipo = (ctx.tbas() != null && ctx.tbas().getText().equalsIgnoreCase("REAL"))
+                ? "float"
+                : "int";
+
+        String parametros = ctx.formal_paramlist() != null
+                ? extraerParametros(ctx.formal_paramlist().getText())
+                : "void";
+
+        StringBuilder cuerpo = new StringBuilder();
+        cuerpo.append(tipo)
+                .append(" ").append(id)
+                .append("(").append(parametros).append(") {\n");
+        pilaCuerpos.push(cuerpo);
     }
 
     @Override
     public void exitDeffun(GramaticaParser.DeffunContext ctx) {
-        String id = ctx.ID().getText();
-        String tipo = "int";  // valor por defecto
-        if (ctx.tbas() != null && ctx.tbas().getText().equals("REAL")) {
-            tipo = "float";
-        }
-        String parametros = "void";
-        if (ctx.formal_paramlist() != null) {
-            parametros = extraerParametrosDesdeTexto(ctx.formal_paramlist().getText());
-        }
-        StringBuilder cuerpo = new StringBuilder();
-        cuerpo.append(tipo).append(" ").append(id).append("(").append(parametros).append(") {\n");
-        pilaCuerpos.push(cuerpo);
-        esFuncion.push(true);
-        funcionesYProcedimientos.add(cuerpo.toString()); // Igual esta mal
-        esFuncion.pop(); //Igual esta mal
+        StringBuilder cuerpo = pilaCuerpos.pop();
+        cuerpo.append("}\n");
+        funcionesYProcedimientos.add(cuerpo.toString());
+        esFuncion.pop();
+        nombreFuncion.pop();
     }
 
-    @Override
-    public void enterBlq(GramaticaParser.BlqContext ctx) {
-        StringBuilder bloqueActual = new StringBuilder();
-
-        if (ctx.getParent() instanceof GramaticaParser.PrgContext) {
-            bloqueActual.append("void main(void) {\n");
-        }
-
-        pilaBloques.push(bloqueActual);
-    }
-
-
-    @Override
-    public void exitBlq(GramaticaParser.BlqContext ctx) {
-        if (pilaBloques.isEmpty()) return;
-
-        StringBuilder bloque = pilaBloques.pop();
-        bloque.append("}\n");
-
-        if (ctx.getParent() instanceof GramaticaParser.PrgContext) {
-            mainBody.append(bloque);
-        } else {
-            // Ya no toques funcionesYProcedimientos aquí
-            if (!pilaCuerpos.isEmpty()) {
-                pilaCuerpos.peek().append(bloque);
-            }
-        }
-    }
-
-    /*@Override
-    public void exitBlq(GramaticaParser.BlqContext ctx) {
-        if (pilaBloques.isEmpty()) return;
-
-        StringBuilder bloque = pilaBloques.pop();
-        bloque.append("}\n");
-
-        if (ctx.getParent() instanceof GramaticaParser.PrgContext) {
-            mainBody.append(bloque);
-        } else {
-            int i = funcionesYProcedimientos.size() - 1;
-            String anterior = funcionesYProcedimientos.get(i);
-            funcionesYProcedimientos.set(i, anterior + bloque);
-        }
-    }
-*/
+    //----------------------------------------------------------------------
+    // 3) Declaración de variables (program principal o locales)
+    //----------------------------------------------------------------------
 
     @Override
     public void exitDefvarlist(GramaticaParser.DefvarlistContext ctx) {
-        String tipo = "int";  // valor por defecto
-        if (ctx.tbas() != null && ctx.tbas().getText().equals("REAL")) {
-            tipo = "float";
-        }
-        List<String> nombres = extraerIDsDesdeVarlist(ctx.varlist());
-        StringBuilder destino = pilaCuerpos.isEmpty() ? globalVariables : pilaCuerpos.peek();
-        for (String nombre : nombres) {
-            destino.append("  ").append(tipo).append(" ").append(nombre).append(";\n");
-        }
+        procesarDefvarlist(ctx);
     }
 
-    private List<String> extraerIDsDesdeVarlist(GramaticaParser.VarlistContext ctx) {
-        List<String> nombres = new ArrayList<>();
-        if (ctx == null) return nombres;
-        nombres.add(ctx.ID().getText());
-        GramaticaParser.VarlistauxContext aux = ctx.varlistaux();
-        while (aux != null && aux.getChildCount() > 1) {
-            GramaticaParser.VarlistContext siguiente = aux.varlist();
-            if (siguiente != null) {
-                nombres.add(siguiente.ID().getText());
-                aux = siguiente.varlistaux();
-            } else {
-                break;
-            }
-        }
-        return nombres;
+    private void procesarDefvarlist(GramaticaParser.DefvarlistContext ctx) {
+        String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
+        List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
+
+        StringBuilder dest = destinoActual();
+        dest.append("  ")
+                .append(tipo)
+                .append(" ")
+                .append(String.join(", ", ids))
+                .append(";\n");
+
+        procesarDefvarlistp(ctx.defvarlistp());
     }
+
+    private void procesarDefvarlistp(GramaticaParser.DefvarlistpContext ctx) {
+        if (ctx == null || ctx.varlist() == null) return;
+        String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
+        List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
+
+        StringBuilder dest = destinoActual();
+        dest.append("  ")
+                .append(tipo)
+                .append(" ")
+                .append(String.join(", ", ids))
+                .append(";\n");
+
+        procesarDefvarlistp(ctx.defvarlistp());
+    }
+
+    /** Devuelve el StringBuilder de la función actual o, si no hay, mainVarDecls */
+    private StringBuilder destinoActual() {
+        return pilaCuerpos.isEmpty() ? mainVarDecls : pilaCuerpos.peek();
+    }
+
+    //----------------------------------------------------------------------
+    // 4) Asignaciones y retorno de función
+    //----------------------------------------------------------------------
 
     @Override
     public void exitAsig(GramaticaParser.AsigContext ctx) {
         String lhs = ctx.ID().getText();
-        String rhs = ctx.exp().getText();
-        String sentencia;
+        String rhs = ctx.exp().getText()
+                .replaceAll("\\bdiv\\b", "/")
+                .replaceAll("\\bmod\\b", "%")
+                .trim();
 
-        // Aseguramos que la pila no esté vacía antes de acceder
-        boolean dentroDeFuncion = !esFuncion.isEmpty() && esFuncion.peek();
-        boolean esRetornoDeFuncion = dentroDeFuncion && !pilaCuerpos.isEmpty()
-                && funcionesYProcedimientos.get(funcionesYProcedimientos.size() - 1).contains(lhs + "(");
-
-        if (esRetornoDeFuncion) {
-            sentencia = "  return " + rhs + ";\n";
+        if (!esFuncion.isEmpty() && esFuncion.peek() && lhs.equals(nombreFuncion.peek())) {
+            // return en función
+            if (!rhs.contains("(") && nombresSubrutinas.contains(rhs)) {
+                rhs += "()";
+            }
+            appendStatement(pilaCuerpos.peek(), "return " + rhs + ";");
         } else {
-            sentencia = "  " + lhs + " = " + rhs + ";\n";
-        }
-
-        // Agregamos la sentencia al bloque actual si hay uno en la pila
-        if (!pilaCuerpos.isEmpty()) {
-            pilaCuerpos.peek().append(sentencia);
-        } else {
-            mainBody.append(sentencia);
+            // asignación normal
+            if (!rhs.contains("(") && nombresSubrutinas.contains(rhs)) {
+                rhs += "()";
+            }
+            appendStatement(pilaCuerpos.isEmpty() ? mainBody : pilaCuerpos.peek(),
+                    lhs + " = " + rhs + ";");
         }
     }
 
+    //----------------------------------------------------------------------
+    // 5) Llamadas y writeln → printf
+    //----------------------------------------------------------------------
 
     @Override
     public void exitProc_call(GramaticaParser.Proc_callContext ctx) {
-        String id = ctx.ID().getText();
+        String id       = ctx.ID().getText();
+        String argsText = ctx.subparamlist().getText().trim();
+        if (argsText.isEmpty()) argsText = "()";
+
+        String inner = argsText.substring(1, argsText.length()-1).trim();
+
         String sentencia;
-
         if (id.equalsIgnoreCase("writeln")) {
-            // Extraer el contenido dentro de los paréntesis y generar formato de printf
-            String contenido = ctx.subparamlist().getText();
-            contenido = contenido.replace("(", "").replace(")", "");
-            sentencia = "  printf(" + generarFormatoPrintf(contenido) + ");\n";
+            String[] parts = inner.split(",");
+            StringBuilder fmt = new StringBuilder();
+            List<String> argsList = new ArrayList<>();
+            for (String p : parts) {
+                p = p.trim();
+                if ((p.startsWith("'") && p.endsWith("'")) ||
+                        (p.startsWith("\"") && p.endsWith("\""))) {
+                    fmt.append(p, 1, p.length()-1);
+                } else {
+                    fmt.append("%f");
+                    argsList.add(
+                            p.replaceAll("\\bdiv\\b","/")
+                                    .replaceAll("\\bmod\\b","%")
+                    );
+                }
+                fmt.append(" ");
+            }
+            fmt.append("\\n");
+            String args = argsList.isEmpty() ? "" : ", " + String.join(", ", argsList);
+            sentencia = "printf(\"" + fmt + "\"" + args + ");";
         } else {
-            // Para llamadas a otros procedimientos o funciones
-            String argumentos = ctx.subparamlist().getText().replace(":=", "=");
-            sentencia = "  " + id + argumentos + ";\n";
+            sentencia = id + argsText
+                    .replaceAll("\\bdiv\\b","/")
+                    .replaceAll("\\bmod\\b","%")
+                    + ";";
         }
 
-        if (!pilaCuerpos.isEmpty()) {
-            pilaCuerpos.peek().append(sentencia);
-        } else {
-            mainBody.append(sentencia);
-        }
+        appendStatement(pilaCuerpos.isEmpty() ? mainBody : pilaCuerpos.peek(), sentencia);
     }
 
+    //----------------------------------------------------------------------
+    // 6) Ensamblado final del programa
+    //----------------------------------------------------------------------
 
     @Override
     public void exitPrg(GramaticaParser.PrgContext ctx) {
-        mainBody.append("  return 0;\n}\n");
+        salida.append("#include <stdio.h>\n\n")
+                .append(defines).append("\n");
 
-        salida.append("#include <stdio.h>\n\n");
-        salida.append(defines).append("\n");
-        salida.append(globalVariables).append("\n");
         for (String fp : funcionesYProcedimientos) {
-            salida.append(fp);
+            salida.append(fp).append("\n");
         }
-        salida.append(mainBody);
+
+        salida.append("void main(void) {\n")
+                .append(mainVarDecls)
+                .append(mainBody)
+                .append("  return 0;\n")
+                .append("}\n");
     }
 
     public String getCodigoFinal() {
         return salida.toString();
     }
 
-    private String extraerParametrosDesdeTexto(String original) {
-        String sinParentesis = original.replace("(", "").replace(")", "");
-        String[] partes = sinParentesis.split(";");
-        List<String> parametros = new ArrayList<>();
+    //----------------------------------------------------------------------
+    // Métodos auxiliares
+    //----------------------------------------------------------------------
 
-        for (String parte : partes) {
-            String[] seccion = parte.trim().split(":");
-            if (seccion.length == 2) {
-                String[] nombres = seccion[0].trim().split(",");
-                String tipo = seccion[1].trim().equalsIgnoreCase("INTEGER") ? "int" : "float";
-                for (String nombre : nombres) {
-                    parametros.add(tipo + " " + nombre.trim());
-                }
-            }
-        }
-
-        return String.join(", ", parametros);
+    private void appendStatement(StringBuilder buf, String stmt) {
+        buf.append("  ").append(stmt).append("\n");
     }
 
-    private String generarFormatoPrintf(String args) {
-        StringBuilder format = new StringBuilder("\"");
-        StringBuilder values = new StringBuilder();
-        String[] partes = args.split(",");
-
-        for (String parte : partes) {
-            parte = parte.trim();
-            if (parte.startsWith("%")) {
-                format.append(parte.replace("%", "")).append("\\n");
-            } else {
-                format.append("%f ");  // Suposición básica
-                if (values.length() > 0) values.append(", ");
-                values.append(parte);
-            }
+    private List<String> extraerIDsDesdeVarlist(GramaticaParser.VarlistContext ctx) {
+        List<String> ids = new ArrayList<>();
+        if (ctx == null) return ids;
+        ids.add(ctx.ID().getText());
+        GramaticaParser.VarlistauxContext aux = ctx.varlistaux();
+        while (aux != null && aux.varlist() != null) {
+            ids.add(aux.varlist().ID().getText());
+            aux = aux.varlist().varlistaux();
         }
-
-        format.append("\"");
-        if (values.length() > 0) {
-            format.append(", ").append(values);
-        }
-        return format.toString();
+        return ids;
     }
 
+    private String extraerParametros(String texto) {
+        String sinPar = texto.replace("(", "").replace(")", "");
+        String[] grupos = sinPar.split(";");
+        List<String> params = new ArrayList<>();
+        for (String g : grupos) {
+            String[] trozos = g.trim().split(":");
+            if (trozos.length != 2) continue;
+            String idPart = trozos[0].trim();
+            if (idPart.contains(",")) {
+                throw new RuntimeException(
+                        "Compactación de parámetros no soportada. Use a: TYPE; b: TYPE; …");
+            }
+            String tipo = trozos[1].trim().equalsIgnoreCase("INTEGER") ? "int" : "float";
+            params.add(tipo + " " + idPart);
+        }
+        return String.join(", ", params);
+    }
 }
