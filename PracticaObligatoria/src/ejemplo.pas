@@ -7,7 +7,7 @@ begin
     c := 15;
     if a < b then
        begin
-            writeln('a es menor que b');
+            writeln('a es menor');
        end
     if (a < b) and (b < c) then
        begin
@@ -17,10 +17,10 @@ begin
 
     if not (a < b) then
         begin
-            writeln('a no es mayor que b');
+            writeln('a no es mayor');
         end
     else
         begin
-            writeln('a es mayor que b');
+            writeln('a es mayor');
         end
 end.

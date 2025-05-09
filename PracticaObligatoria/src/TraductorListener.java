@@ -1,30 +1,3 @@
-/*
- * Gramática del lenguaje fuente — Sentencias de control de flujo:
- *
- *   expcond    ::= expcond oplog expcond
- *                | factorcond
- *
- *   oplog      ::= "or"
- *                | "and"
- *
- *   factorcond ::= exp opcomp exp
- *                | "(" expcond ")"
- *                | "not" factorcond
- *
- *   opcomp     ::= "<" | ">" | "<=" | ">=" | "="
- *
- *   sent       ::= …                           (tus sent anteriores)
- *                | "if"    expcond "then" blq "else" blq
- *                | "while" expcond "do"   blq
- *                | "repeat" blq "until" expcond ";"
- *                | "for" ID ":=" exp inc exp "do" blq
- *
- *   inc        ::= "to" | "downto"
- *
- * Nota: Para la parte obligatoria sólo se procesan parámetros sin compactar
- *       y el bloque principal se traduce a  void main(void) { … }.
- */
-
 import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.*;
 
@@ -32,7 +5,7 @@ public class TraductorListener extends GramaticaBaseListener {
 
     private final StringBuilder salida               = new StringBuilder();
     private final StringBuilder defines              = new StringBuilder();
-    private final StringBuilder mainVarDecls         = new StringBuilder();
+    private final StringBuilder globalVariables      = new StringBuilder();
     private final List<String>    funcionesYProcedimientos = new ArrayList<>();
     private final StringBuilder   mainBody            = new StringBuilder();
 
@@ -40,8 +13,8 @@ public class TraductorListener extends GramaticaBaseListener {
     private final Stack<Boolean>        esFuncion      = new Stack<>();
     private final Stack<String>         nombreFuncion  = new Stack<>();
 
-    // Para detectar subrutinas y añadir paréntesis cuando no tengan args
-    private final Set<String> nombresSubrutinas      = new HashSet<>();
+    // Para detectar llamadas sin paréntesis
+    private final Set<String>           nombresSubrutinas = new HashSet<>();
 
     //----------------------------------------------------------------------
     // 1) Constantes (#define)
@@ -53,8 +26,7 @@ public class TraductorListener extends GramaticaBaseListener {
     }
 
     private void procesarCtelist(GramaticaParser.CtelistContext ctx) {
-        defines
-                .append("#define ")
+        defines.append("#define ")
                 .append(ctx.ID().getText())
                 .append(" ")
                 .append(ctx.simpvalue().getText())
@@ -64,8 +36,7 @@ public class TraductorListener extends GramaticaBaseListener {
 
     private void procesarCtelistp(GramaticaParser.CtelistpContext ctx) {
         if (ctx == null || ctx.ID() == null) return;
-        defines
-                .append("#define ")
+        defines.append("#define ")
                 .append(ctx.ID().getText())
                 .append(" ")
                 .append(ctx.simpvalue().getText())
@@ -89,8 +60,7 @@ public class TraductorListener extends GramaticaBaseListener {
                 : "void";
 
         StringBuilder cuerpo = new StringBuilder();
-        cuerpo.append("void ")
-                .append(id)
+        cuerpo.append("void ").append(id)
                 .append("(").append(parametros).append(") {\n");
         pilaCuerpos.push(cuerpo);
     }
@@ -120,8 +90,7 @@ public class TraductorListener extends GramaticaBaseListener {
                 : "void";
 
         StringBuilder cuerpo = new StringBuilder();
-        cuerpo.append(tipo)
-                .append(" ").append(id)
+        cuerpo.append(tipo).append(" ").append(id)
                 .append("(").append(parametros).append(") {\n");
         pilaCuerpos.push(cuerpo);
     }
@@ -136,7 +105,7 @@ public class TraductorListener extends GramaticaBaseListener {
     }
 
     //----------------------------------------------------------------------
-    // 3) Declaración de variables (program principal o locales)
+    // 3) Declaración de variables (agrupadas por tipo)
     //----------------------------------------------------------------------
 
     @Override
@@ -148,14 +117,15 @@ public class TraductorListener extends GramaticaBaseListener {
         String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
         List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
 
-        StringBuilder dest = destinoActual();
-        dest.append("  ")
-                .append(tipo)
-                .append(" ")
+        StringBuilder destino = pilaCuerpos.isEmpty() ? globalVariables : pilaCuerpos.peek();
+        destino.append("  ")
+                .append(tipo).append(" ")
                 .append(String.join(", ", ids))
                 .append(";\n");
 
-        procesarDefvarlistp(ctx.defvarlistp());
+        if (ctx.defvarlistp() != null) {
+            procesarDefvarlistp(ctx.defvarlistp());
+        }
     }
 
     private void procesarDefvarlistp(GramaticaParser.DefvarlistpContext ctx) {
@@ -163,19 +133,13 @@ public class TraductorListener extends GramaticaBaseListener {
         String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
         List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
 
-        StringBuilder dest = destinoActual();
-        dest.append("  ")
-                .append(tipo)
-                .append(" ")
+        StringBuilder destino = pilaCuerpos.isEmpty() ? globalVariables : pilaCuerpos.peek();
+        destino.append("  ")
+                .append(tipo).append(" ")
                 .append(String.join(", ", ids))
                 .append(";\n");
 
         procesarDefvarlistp(ctx.defvarlistp());
-    }
-
-    /** Devuelve el StringBuilder de la función actual o, si no hay, mainVarDecls */
-    private StringBuilder destinoActual() {
-        return pilaCuerpos.isEmpty() ? mainVarDecls : pilaCuerpos.peek();
     }
 
     //----------------------------------------------------------------------
@@ -187,21 +151,15 @@ public class TraductorListener extends GramaticaBaseListener {
         String lhs = ctx.ID().getText();
         String rhs = ctx.exp().getText()
                 .replaceAll("\\bdiv\\b", "/")
-                .replaceAll("\\bmod\\b", "%")
-                .trim();
+                .replaceAll("\\bmod\\b", "%");
 
         if (!esFuncion.isEmpty() && esFuncion.peek() && lhs.equals(nombreFuncion.peek())) {
-            // return en función
-            if (!rhs.contains("(") && nombresSubrutinas.contains(rhs)) {
-                rhs += "()";
-            }
-            appendStatement(pilaCuerpos.peek(), "return " + rhs + ";");
+            appendLine(pilaCuerpos.peek(), "return " + rhs + ";");
         } else {
-            // asignación normal
             if (!rhs.contains("(") && nombresSubrutinas.contains(rhs)) {
                 rhs += "()";
             }
-            appendStatement(pilaCuerpos.isEmpty() ? mainBody : pilaCuerpos.peek(),
+            appendLine(pilaCuerpos.isEmpty() ? mainBody : pilaCuerpos.peek(),
                     lhs + " = " + rhs + ";");
         }
     }
@@ -212,7 +170,7 @@ public class TraductorListener extends GramaticaBaseListener {
 
     @Override
     public void exitProc_call(GramaticaParser.Proc_callContext ctx) {
-        String id       = ctx.ID().getText();
+        String id      = ctx.ID().getText();
         String argsText = ctx.subparamlist().getText().trim();
         if (argsText.isEmpty()) argsText = "()";
 
@@ -220,34 +178,36 @@ public class TraductorListener extends GramaticaBaseListener {
 
         String sentencia;
         if (id.equalsIgnoreCase("writeln")) {
-            String[] parts = inner.split(",");
+            String[] partes = inner.split(",");
             StringBuilder fmt = new StringBuilder();
             List<String> argsList = new ArrayList<>();
-            for (String p : parts) {
+            for (String p : partes) {
                 p = p.trim();
                 if ((p.startsWith("'") && p.endsWith("'")) ||
                         (p.startsWith("\"") && p.endsWith("\""))) {
                     fmt.append(p, 1, p.length()-1);
                 } else {
                     fmt.append("%f");
-                    argsList.add(
-                            p.replaceAll("\\bdiv\\b","/")
-                                    .replaceAll("\\bmod\\b","%")
-                    );
+                    argsList.add(p.replaceAll("\\bdiv\\b", "/")
+                            .replaceAll("\\bmod\\b", "%"));
                 }
                 fmt.append(" ");
             }
             fmt.append("\\n");
             String args = argsList.isEmpty() ? "" : ", " + String.join(", ", argsList);
-            sentencia = "printf(\"" + fmt + "\"" + args + ");";
+            sentencia = "  printf(\"" + fmt + "\"" + args + ");";
         } else {
-            sentencia = id + argsText
-                    .replaceAll("\\bdiv\\b","/")
-                    .replaceAll("\\bmod\\b","%")
+            sentencia = "  " + id + argsText
+                    .replaceAll("\\bdiv\\b", "/")
+                    .replaceAll("\\bmod\\b", "%")
                     + ";";
         }
 
-        appendStatement(pilaCuerpos.isEmpty() ? mainBody : pilaCuerpos.peek(), sentencia);
+        if (!pilaCuerpos.isEmpty()) {
+            pilaCuerpos.peek().append(sentencia).append("\n");
+        } else {
+            mainBody.append(sentencia).append("\n");
+        }
     }
 
     //----------------------------------------------------------------------
@@ -257,14 +217,12 @@ public class TraductorListener extends GramaticaBaseListener {
     @Override
     public void exitPrg(GramaticaParser.PrgContext ctx) {
         salida.append("#include <stdio.h>\n\n")
-                .append(defines).append("\n");
-
+                .append(defines).append("\n")
+                .append(globalVariables).append("\n");
         for (String fp : funcionesYProcedimientos) {
             salida.append(fp).append("\n");
         }
-
         salida.append("void main(void) {\n")
-                .append(mainVarDecls)
                 .append(mainBody)
                 .append("  return 0;\n")
                 .append("}\n");
@@ -278,36 +236,36 @@ public class TraductorListener extends GramaticaBaseListener {
     // Métodos auxiliares
     //----------------------------------------------------------------------
 
-    private void appendStatement(StringBuilder buf, String stmt) {
+    private void appendLine(StringBuilder buf, String stmt) {
         buf.append("  ").append(stmt).append("\n");
     }
 
     private List<String> extraerIDsDesdeVarlist(GramaticaParser.VarlistContext ctx) {
-        List<String> ids = new ArrayList<>();
-        if (ctx == null) return ids;
-        ids.add(ctx.ID().getText());
+        List<String> nombres = new ArrayList<>();
+        if (ctx == null) return nombres;
+        nombres.add(ctx.ID().getText());
         GramaticaParser.VarlistauxContext aux = ctx.varlistaux();
         while (aux != null && aux.varlist() != null) {
-            ids.add(aux.varlist().ID().getText());
-            aux = aux.varlist().varlistaux();
+            GramaticaParser.VarlistContext siguiente = aux.varlist();
+            nombres.add(siguiente.ID().getText());
+            aux = siguiente.varlistaux();
         }
-        return ids;
+        return nombres;
     }
 
     private String extraerParametros(String texto) {
-        String sinPar = texto.replace("(", "").replace(")", "");
-        String[] grupos = sinPar.split(";");
+        String sin = texto.replace("(", "").replace(")", "");
+        String[] grupos = sin.split(";");
         List<String> params = new ArrayList<>();
         for (String g : grupos) {
             String[] trozos = g.trim().split(":");
-            if (trozos.length != 2) continue;
-            String idPart = trozos[0].trim();
-            if (idPart.contains(",")) {
-                throw new RuntimeException(
-                        "Compactación de parámetros no soportada. Use a: TYPE; b: TYPE; …");
+            if (trozos.length == 2) {
+                String[] ids = trozos[0].trim().split(",");
+                String tipo = trozos[1].trim().equalsIgnoreCase("INTEGER") ? "int" : "float";
+                for (String id : ids) {
+                    params.add(tipo + " " + id.trim());
+                }
             }
-            String tipo = trozos[1].trim().equalsIgnoreCase("INTEGER") ? "int" : "float";
-            params.add(tipo + " " + idPart);
         }
         return String.join(", ", params);
     }

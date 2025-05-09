@@ -73,15 +73,3 @@ CONSTLI: '\'' ( ~['\r\n] |'\\' '\'')* '\'' {};
 COMENTARIO1L: ('{') [~\n]+ ('}') {}; // No debe reconocer saltos de lineas
 COMENTARIOVL: ('*') [~]+ ('*') {};
 SALTAR: [ \t\r\n]+ -> skip;
-
-/*
-program: defines partes;
-defines: ʎ | '#define' ID ctes defines;
-ctes: constint | constfloat | constlit;
-partes: part partes | part;
-part: type restpart;
-restpart: ID '(' listparam ')' blq | ID '(' 'void' ')' blq;
-blq: '{' sentlist '}';
-listparam: listparam ',' type ID | type ID;
-type: 'void' | 'int' | 'float';
-*/
