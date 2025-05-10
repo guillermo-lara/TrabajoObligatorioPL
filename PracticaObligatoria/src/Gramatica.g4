@@ -1,5 +1,174 @@
 grammar Gramatica;
 
+@members{
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public void imprimirCodigoC(String codigoC) {
+    System.out.println(codigoC);
+}
+
+public void guardarCodigoEnArchivo(String codigoC, String nombreArchivo) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(nombreArchivo))) {
+        writer.write(codigoC);
+    } catch (IOException e) {
+        System.err.println("Error al guardar el archivo: " + e.getMessage());
+    }
+}
+
+
+public String traducirPascalAC(String pascalCode) {
+    // Suponemos que ya hemos realizado el análisis léxico y sintáctico del código Pascal
+    // Ahora comenzamos con la traducción
+
+    StringBuilder codigoC = new StringBuilder();
+
+    // Traducir el programa: Empezamos con el bloque principal de código
+    codigoC.append(traducirAxioma(pascalCode));
+
+    // Si no se encuentra la traducción, se agrega un mensaje de error
+    if (codigoC.length() == 0) {
+        codigoC.append("// Error: El código Pascal no es válido.");
+    }
+
+    return codigoC.toString();
+}
+public String traducirAxioma(String pascalCode) {
+    if (pascalCode.contains("program")) {
+        return traducirPrg(pascalCode); // Traducimos el programa
+    } else if (pascalCode.contains("unit")) {
+        return traducirUnit(pascalCode); // Traducimos la unidad
+    } else {
+        return ""; // No se ha encontrado el tipo
+    }
+}
+public String traducirPrg(String pascalCode) {
+    StringBuilder codigoC = new StringBuilder();
+
+    // Analizamos la estructura de un `program` o `unit`
+    if (pascalCode.contains("program")) {
+        // Extraemos el nombre y las declaraciones
+        String nombre = extraerNombre(pascalCode);
+        String bloque = traducirBloque(pascalCode);
+
+        // Comenzamos el programa en C
+        codigoC.append("int main() {\n");
+        codigoC.append(bloque); // Traducimos las instrucciones del bloque
+        codigoC.append("}\n");
+    }
+
+    return codigoC.toString();
+}
+public String traducirUnit(String pascalCode) {
+    // Aquí iría la traducción para unidades en Pascal
+    // Similar a la función anterior, pero utilizando la sintaxis adecuada
+    return "";
+}
+
+public String traducirBloque(String pascalCode) {
+    StringBuilder bloqueC = new StringBuilder();
+
+    // Traducir las declaraciones
+    String declaraciones = traducirDeclaraciones(pascalCode);
+    bloqueC.append(declaraciones);
+
+    // Traducir las sentencias dentro del bloque
+    String sentencias = traducirSentencias(pascalCode);
+    bloqueC.append(sentencias);
+
+    return bloqueC.toString();
+}
+public String traducirDeclaraciones(String pascalCode) {
+    StringBuilder declaracionesC = new StringBuilder();
+
+    // Revisamos si hay constantes, variables, procedimientos o funciones
+    if (pascalCode.contains("CONST")) {
+        declaracionesC.append(traducirConstantes(pascalCode));
+    }
+
+    if (pascalCode.contains("VAR")) {
+        declaracionesC.append(traducirVariables(pascalCode));
+    }
+
+    if (pascalCode.contains("PROCEDURE")) {
+        declaracionesC.append(traducirProcedimiento(pascalCode));
+    }
+
+    if (pascalCode.contains("FUNCTION")) {
+        declaracionesC.append(traducirFuncion(pascalCode));
+    }
+
+    return declaracionesC.toString();
+}
+
+public String traducirConstantes(String pascalCode) {
+    // Traducir las constantes de Pascal a #define en C
+    return "#define PI 3.14\n"; // Ejemplo de constante
+}
+
+public String traducirVariables(String pascalCode) {
+    // Traducir las variables de Pascal a su tipo en C
+    return "int a, b;\n"; // Ejemplo de declaración de variables
+}
+
+public String traducirProcedimiento(String pascalCode) {
+    // Traducir el procedimiento de Pascal a una función en C
+    return "void miProcedimiento() {\n    // Código aquí\n}\n"; // Ejemplo de procedimiento
+}
+
+public String traducirFuncion(String pascalCode) {
+    // Traducir una función de Pascal a C
+    return "int miFuncion(int a, int b) {\n    return a + b;\n}\n"; // Ejemplo de función
+}
+public String traducirSentencias(String pascalCode) {
+    StringBuilder sentenciasC = new StringBuilder();
+
+    // Traducir asignaciones
+    if (pascalCode.contains(":=")) {
+        sentenciasC.append(traducirAsignacion(pascalCode));
+    }
+
+    // Traducir estructuras de control como 'if', 'while', etc.
+    if (pascalCode.contains("if")) {
+        sentenciasC.append(traducirIf(pascalCode));
+    }
+
+    // Otras sentencias
+    if (pascalCode.contains("while")) {
+        sentenciasC.append(traducirWhile(pascalCode));
+    }
+
+    return sentenciasC.toString();
+}
+
+public String traducirAsignacion(String pascalCode) {
+    return "a = 10;\n"; // Ejemplo de asignación
+}
+
+public String traducirIf(String pascalCode) {
+    return "if (a > b) {\n    // Código\n} else {\n    // Código\n}\n"; // Ejemplo de sentencia if
+}
+
+public String traducirWhile(String pascalCode) {
+    return "while (a < 10) {\n    // Código\n}\n"; // Ejemplo de sentencia while
+}
+public void procesarYGenerarCodigo(String pascalCode, boolean imprimirEnPantalla, String nombreArchivo) {
+    // Traducimos el código Pascal a C
+    String codigoC = traducirPascalAC(pascalCode);
+
+    // Si se quiere imprimir en la pantalla
+    if (imprimirEnPantalla) {
+        imprimirCodigoC(codigoC);
+    }
+
+    // Si se quiere guardar en un archivo
+    if (nombreArchivo != null && !nombreArchivo.isEmpty()) {
+        guardarCodigoEnArchivo(codigoC, nombreArchivo);
+    }
+}
+
+}
 axioma: prg;
 
 prg: 'program' ID ';' blq '.' | 'unit' ID ';' dcllist '.'; // [\n]  Desde aqui se debería llamar a imprimir
