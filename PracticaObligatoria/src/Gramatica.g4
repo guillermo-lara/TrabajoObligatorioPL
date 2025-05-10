@@ -6,8 +6,7 @@ grammar Gramatica;
 
 axioma:(prg);
 
-
-prg: 'program' ID ';' blq '.'; // [\n]
+prg: 'program' ID ';' blq '.' | 'unit' ID ';' dcllist '.'; // [\n]
 blq: dcllist 'begin' sentlist 'end';
 dcllist:  dcl dcllist | ;
 sentlist: sent  sentlistp ;
@@ -33,7 +32,11 @@ tbas: 'INTEGER' | 'REAL';
 sent: asig ';' | proc_call ';' | 'if' expcond 'then' blq 'else' blq
 | 'while' expcond 'do'   blq
 | 'repeat' blq 'until' expcond ';'
-| 'for' ID ':=' exp inc exp 'do' blq;
+| 'for' ID ':=' exp inc exp 'do' blq
+| 'if' '(' lcond ')' blq 'else' blq
+| 'while' '(' lcond ')' blq
+| 'do' blq 'until' '(' lcond ')'
+| 'for' '(' ID '=' exp ';' lcond ';' ID '=' exp ')' blq;
 asig: ID ':=' exp;
 exp: factor expp;
 expp: op expp exp | ;
@@ -45,7 +48,15 @@ explist: exp explistaux;
 explistaux: ',' explist | ;
 proc_call: ID subparamlist;
 
+//control dee flujo
+expcond: factorcond expcondp;
+expcondp: oplog expcond expcondp | ;
+oplog: 'or' | 'and' ;
+factorcond: exp opcomp exp | '(' expcond ')'| 'not' factorcond;
+opcomp: '<' | '>' | '<=' | '>=' | '=';
+inc: 'to' | 'downto';
 
+//Parte de lenguaje final
 program: defines partes;
 defines: '#define' ID ctes defines |;
 ctes: CONSTINT | CONSTREAL | CONSTLI;
@@ -56,13 +67,12 @@ bloque: '{' sentlist '}';
 listparam: listparam ',' type ID | type ID;
 type: 'void' | 'int' | 'float';
 
+lcond: lcond opl lcond | cond | '!' cond;
+opl: '||' | '&&';
+cond: exp opr exp;
+opr: '==' | '<' | '>' | '>=' | '<=';
 
-expcond: factorcond expcondp;
-expcondp: oplog expcond expcondp | ;
-oplog: 'or' | 'and';
-factorcond: exp opcomp exp | '(' expcond ')'| 'not' factorcond;
-opcomp: '<' | '>' | '<=' | '>=' | '=';
-inc: 'to' | 'downto';
+
 
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};

@@ -1,26 +1,46 @@
-program CondicionesSimples;
+program ejemplo;
+
+const
+    PI = 3.14159;
+    FACTOR = 2;
+
 var
     a, b, c: INTEGER;
+    r, area: REAL;
+
+procedure ShowValues(x: INTEGER; y: INTEGER);
+var
+    d, e, f, g: INTEGER;
+    r2, r3, r4, r5 : REAL;
+begin
+    writeln('First value: ', x);
+    writeln('Second value: ', y);
+end;
+
+function Multiply(n1: INTEGER; n2: INTEGER): INTEGER;
+var
+    n2: INTEGER;
+begin
+    Multiply := n1 * n2;
+end;
+
+function CircleArea(radius: REAL): REAL;
+begin
+    CircleArea := PI * radius * radius;
+end;
+
 begin
     a := 5;
     b := 10;
-    c := 15;
-    if a < b then
-       begin
-            writeln('a es menor');
-       end
-    if (a < b) and (b < c) then
-       begin
-            a := a + 1;
-            writeln('a fue incrementado');
-       end
+    c := Multiply(a, b);
 
-    if not (a < b) then
-        begin
-            writeln('a no es mayor');
-        end
-    else
-        begin
-            writeln('a es mayor');
-        end
+    ShowValues(a, c);
+
+    r := 7.5;
+    area := CircleArea(r);
+
+    writeln('Radius: ', r);
+    writeln('Area of circle: ', area);
+    writeln('Constant factor: ', FACTOR);
 end.
+

@@ -1,0 +1,26 @@
+program CondicionesSimples;
+var
+    a, b, c: INTEGER;
+begin
+    a := 5;
+    b := 10;
+    c := 15;
+    if a < b then
+       begin
+            writeln('a es menor');
+       end
+    if (a < b) and (b < c) then
+       begin
+            a := a + 1;
+            writeln('a fue incrementado');
+       end
+
+    if not (a < b) then
+        begin
+            writeln('a no es mayor');
+        end
+    else
+        begin
+            writeln('a es mayor');
+        end
+end.

@@ -16,6 +16,23 @@ public class TraductorListener extends GramaticaBaseListener {
     // Para detectar llamadas sin paréntesis
     private final Set<String>           nombresSubrutinas = new HashSet<>();
 
+    // Para distinguir librería vs programa
+    private boolean esLibreria = false;
+    private String  nombreLibreria;
+
+    //----------------------------------------------------------------------
+    // Detectar si es librería (unit) o programa (program)
+    //----------------------------------------------------------------------
+
+    @Override
+    public void enterPrg(GramaticaParser.PrgContext ctx) {
+        String primera = ctx.getStart().getText();
+        if ("unit".equalsIgnoreCase(primera)) {
+            esLibreria = true;
+            nombreLibreria = ctx.ID().getText();
+        }
+    }
+
     //----------------------------------------------------------------------
     // 1) Constantes (#define)
     //----------------------------------------------------------------------
@@ -117,7 +134,9 @@ public class TraductorListener extends GramaticaBaseListener {
         String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
         List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
 
-        StringBuilder destino = pilaCuerpos.isEmpty() ? globalVariables : pilaCuerpos.peek();
+        StringBuilder destino = pilaCuerpos.isEmpty()
+                ? globalVariables
+                : pilaCuerpos.peek();
         destino.append("  ")
                 .append(tipo).append(" ")
                 .append(String.join(", ", ids))
@@ -133,7 +152,9 @@ public class TraductorListener extends GramaticaBaseListener {
         String tipo = ctx.tbas().getText().equalsIgnoreCase("REAL") ? "float" : "int";
         List<String> ids = extraerIDsDesdeVarlist(ctx.varlist());
 
-        StringBuilder destino = pilaCuerpos.isEmpty() ? globalVariables : pilaCuerpos.peek();
+        StringBuilder destino = pilaCuerpos.isEmpty()
+                ? globalVariables
+                : pilaCuerpos.peek();
         destino.append("  ")
                 .append(tipo).append(" ")
                 .append(String.join(", ", ids))
@@ -170,13 +191,13 @@ public class TraductorListener extends GramaticaBaseListener {
 
     @Override
     public void exitProc_call(GramaticaParser.Proc_callContext ctx) {
-        String id      = ctx.ID().getText();
+        String id = ctx.ID().getText();
         String argsText = ctx.subparamlist().getText().trim();
         if (argsText.isEmpty()) argsText = "()";
 
-        String inner = argsText.substring(1, argsText.length()-1).trim();
-
+        String inner = argsText.substring(1, argsText.length() - 1).trim();
         String sentencia;
+
         if (id.equalsIgnoreCase("writeln")) {
             String[] partes = inner.split(",");
             StringBuilder fmt = new StringBuilder();
@@ -185,7 +206,7 @@ public class TraductorListener extends GramaticaBaseListener {
                 p = p.trim();
                 if ((p.startsWith("'") && p.endsWith("'")) ||
                         (p.startsWith("\"") && p.endsWith("\""))) {
-                    fmt.append(p, 1, p.length()-1);
+                    fmt.append(p, 1, p.length() - 1);
                 } else {
                     fmt.append("%f");
                     argsList.add(p.replaceAll("\\bdiv\\b", "/")
@@ -197,8 +218,8 @@ public class TraductorListener extends GramaticaBaseListener {
             String args = argsList.isEmpty() ? "" : ", " + String.join(", ", argsList);
             sentencia = "  printf(\"" + fmt + "\"" + args + ");";
         } else {
-            sentencia = "  " + id + argsText
-                    .replaceAll("\\bdiv\\b", "/")
+            sentencia = "  " + id
+                    + argsText.replaceAll("\\bdiv\\b", "/")
                     .replaceAll("\\bmod\\b", "%")
                     + ";";
         }
@@ -211,21 +232,32 @@ public class TraductorListener extends GramaticaBaseListener {
     }
 
     //----------------------------------------------------------------------
-    // 6) Ensamblado final del programa
+    // 6) Ensamblado final: librería o programa
     //----------------------------------------------------------------------
 
     @Override
     public void exitPrg(GramaticaParser.PrgContext ctx) {
-        salida.append("#include <stdio.h>\n\n")
-                .append(defines).append("\n")
-                .append(globalVariables).append("\n");
-        for (String fp : funcionesYProcedimientos) {
-            salida.append(fp).append("\n");
+        if (esLibreria) {
+            // Solo comentario y sin main()
+            salida.append("// Librería: ").append(nombreLibreria).append("\n")
+                    .append(defines).append("\n")
+                    .append(globalVariables).append("\n");
+            for (String fp : funcionesYProcedimientos) {
+                salida.append(fp).append("\n");
+            }
+        } else {
+            // Programa normal
+            salida.append("#include <stdio.h>\n\n")
+                    .append(defines).append("\n")
+                    .append(globalVariables).append("\n");
+            for (String fp : funcionesYProcedimientos) {
+                salida.append(fp).append("\n");
+            }
+            salida.append("void main(void) {\n")
+                    .append(mainBody)
+                    .append("  return 0;\n")
+                    .append("}\n");
         }
-        salida.append("void main(void) {\n")
-                .append(mainBody)
-                .append("  return 0;\n")
-                .append("}\n");
     }
 
     public String getCodigoFinal() {
@@ -241,29 +273,29 @@ public class TraductorListener extends GramaticaBaseListener {
     }
 
     private List<String> extraerIDsDesdeVarlist(GramaticaParser.VarlistContext ctx) {
-        List<String> nombres = new ArrayList<>();
-        if (ctx == null) return nombres;
-        nombres.add(ctx.ID().getText());
+        List<String> ids = new ArrayList<>();
+        if (ctx == null) return ids;
+        ids.add(ctx.ID().getText());
         GramaticaParser.VarlistauxContext aux = ctx.varlistaux();
         while (aux != null && aux.varlist() != null) {
             GramaticaParser.VarlistContext siguiente = aux.varlist();
-            nombres.add(siguiente.ID().getText());
+            ids.add(siguiente.ID().getText());
             aux = siguiente.varlistaux();
         }
-        return nombres;
+        return ids;
     }
 
     private String extraerParametros(String texto) {
-        String sin = texto.replace("(", "").replace(")", "");
-        String[] grupos = sin.split(";");
+        texto = texto.replace("(", "").replace(")", "");
+        String[] grupos = texto.split(";");
         List<String> params = new ArrayList<>();
         for (String g : grupos) {
             String[] trozos = g.trim().split(":");
             if (trozos.length == 2) {
-                String[] ids = trozos[0].trim().split(",");
+                String[] names = trozos[0].trim().split(",");
                 String tipo = trozos[1].trim().equalsIgnoreCase("INTEGER") ? "int" : "float";
-                for (String id : ids) {
-                    params.add(tipo + " " + id.trim());
+                for (String name : names) {
+                    params.add(tipo + " " + name.trim());
                 }
             }
         }

@@ -17,7 +17,7 @@ begin
     writeln('Second value: ', y);
 end;
 
-function Multiply(n1: INTEGER; n2: INTEGER): INTEGER;
+function Multiply(n1: INTEGER; n2, n3: INTEGER): INTEGER;
 var
     n2: INTEGER;
 begin
