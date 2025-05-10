@@ -2,7 +2,7 @@ grammar Gramatica;
 
 axioma: prg;
 
-prg: 'program' ID ';' blq '.'; // [\n]  Desde aqui se debería llamar a imprimir
+prg: 'program' ID ';' blq '.' | 'unit' ID ';' dcllist '.'; // [\n]  Desde aqui se debería llamar a imprimir
 blq returns [String bloq]: dcllist 'begin' sentlist 'end' {$bloq = $dcllist.dcllis +" begin" + $sentlist.senlis +" end";};
 dcllist returns [String dcllis]:  dcl dcllist {$dcllis = $dcl.dcll +$dcllist.dcllis;}| {$dcllis = "";} ;
 sentlist returns [String senlis]: sent  sentlistp {$senlis = $sent.sen +$sentlistp.senlisp;};
@@ -25,7 +25,15 @@ formalparam returns [String for_para]: varlist ':' tbas formalparamaux {$for_par
 formalparamaux returns [String for_paraaux]: ';' formalparam {$for_paraaux = "; "+$formalparam.for_para;} | {$for_paraaux = "";} ;
 tbas returns [String vlex]: 'INTEGER' {$vlex = "int ";} | 'REAL' {$vlex = "float ";};
 
-sent returns [String sen]: asig ';' {$sen = $asig.asi +" ;";} | proc_call ';' {$sen = $proc_call.procall +" ;";};
+sent returns [String sen]: asig ';' {$sen = $asig.asi +" ;";} | proc_call ';' {$sen = $proc_call.procall +" ;";}
+| 'while' expcond 'do'   blq {$sen = "while " +$expcond.expcon +" " + "do " +$blq.bloq;}
+| 'repeat' blq 'until' expcond ';' {$sen = "repeat " +$blq.bloq +" " +"until " +$expcond.expcon +";";}
+| 'for' ID ':=' exp inc exp 'do' blq {$sen = "for " +$ID.text +" " +"= " +$exp.ex +" " +$inc.in +" " +$exp.ex +" " +"do " +$blq.bloq;}
+| 'if' '(' lcond ')' blq 'else' blq {$sen = "if " +"( " +$lcond.lcon +" )" +$blq.bloq +" " +"else " +$blq.bloq;}
+| 'while' '(' lcond ')' blq {$sen = "while " +"( " +$lcond.lcon +" )" +$blq.bloq;}
+| 'do' blq 'until' '(' lcond ')' {$sen = "do " +$blq.bloq +" " +"until " +"( " +$lcond.lcon +" )";}
+| 'for' '(' ID '=' exp ';' lcond ';' ID '=' exp ')' blq {$sen = "for " +"( " +$ID.text +" " +"= " +$exp.ex +"; " +$lcond.lcon +"; " +$ID.text +" " +"= " +$exp.ex +" ) " +$blq.bloq;};
+
 asig returns [String asi]: ID ':=' exp {$asi = $ID.text +" = " +$exp.ex ;};
 exp returns [String ex]: factor expp {$ex = $factor.fact + $expp.exppp;};
 expp returns [String exppp]: op expp exp {$exppp = $op.opp +" " +$exp.ex +" " +$expp.exppp;} | {$exppp = "";};
@@ -37,6 +45,15 @@ explist returns [String explis]: exp explistaux {$explis = $exp.ex +$explistaux.
 explistaux returns [String explisaux]: ',' explist {$explisaux = ", " +$explist.explis;} | {$explisaux = "";};
 proc_call returns [String procall]: ID subparamlist {$procall = $ID.text +" " +$subparamlist.subparalis;};
 
+//control dee flujo
+expcond returns [String expcon]: factorcond expcondp {$expcon = $factorcond.factorcon +" " +$expcondp.expconp;};
+expcondp returns [String expconp]: oplog expcond expcondp {$expconp = $oplog.oplo +" " +$expcond.expcon +" " +$expcondp.expconp;}|{$expconp ="";} ;
+oplog returns [String oplo]: 'or' {$oplo = "|| ";} | 'and' {$oplo = "&& ";};
+factorcond returns [Strig factorcon]: exp opcomp exp {$factorcon = $exp.ex +" " +$opcomp.opcom +" " +$exp.ex;}| '(' expcond ')' {$factorcon = "( " +$expcond.expcon +" )" ;}| '!' factorcond {$factorcon = "not " +$factorcond.factorcon ;};
+opcomp returns [String opcom]: '<' {$opcom = "< ";}| '>' {$opcom = "> ";}| '<=' {$opcom = "<= ";}| '>=' {$opcom = ">= ";}| '=' {$opcom = "== ";};
+inc returns [String in]: 'to' {$in = "< ";} | 'downto' {$in = "> ";};
+
+//Parte de lenguaje final
 program: defines partes;
 defines: '#define' ID ctes defines |;
 ctes: CONSTINT | CONSTREAL | CONSTLI;
@@ -46,6 +63,12 @@ restpart: ID '(' listparam ')' bloque| ID '(' 'void' ')' bloque;
 bloque: '{' sentlist '}';
 listparam: listparam ',' type ID | type ID;
 type: 'void' | 'int' | 'float';
+
+lcond returns [String lcon]:  opl lcondp {$lcon = $opl.opll +" " +$lcondp.lconp;} | cond {$lcon = $cond.con;}| '!' cond {$lcon = "! " +cond.con;};
+lcondp returns [String lconp]: opl lcondp {$lconp = $opl.opll +" " +$lcondp.lconp;} | cond {$lconp = $cond.con;}| '!' cond {$lconp = "! " +cond.con;}| {$lconp = "";};
+opl returns [String opll]: '||' {$opll = "|| ";}| '&&' {$opll = "&& ";};
+cond returns [String con]: exp opr exp {$con = $exp.ex +" " +$opr.oprr +" " +$exp.ex;};
+opr returns [String oprr]: '==' {$oprr = "== ";} | '<' {$oprr = "< ";} | '>' {$oprr = "> ";} | '>='  {$oprr = ">= ";}| '<=' {$oprr = "<= ";};
 
 
 ID: [a-no-zA-NO-Z][a-no-zA-NO-Z0-9_]*{};
