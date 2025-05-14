@@ -50,9 +50,10 @@ proc_call: ID subparamlist;
 
 //control dee flujo
 expcond: factorcond expcondp;
-expcondp: oplog expcond expcondp | ;
+expcondp: oplog factorcond expcondp | ;
 oplog: 'or' | 'and' ;
-factorcond: exp opcomp exp | '(' expcond ')'| 'not' factorcond;
+factorcond: exp factorcondp | '(' expcond ')'| 'not' factorcond;
+factorcondp: ompcomp exp | ;
 opcomp: '<' | '>' | '<=' | '>=' | '=';
 inc: 'to' | 'downto';
 
