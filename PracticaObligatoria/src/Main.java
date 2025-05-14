@@ -1,5 +1,9 @@
-import java.io.*;
 import org.antlr.v4.runtime.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,7 +18,7 @@ public class Main {
             GramaticaParser.PrgContext prgContext = parser.prg(); // Aquí invocas solo prg() que es el punto de entrada principal
 
             // Generar el código
-            String generatedCode = prgContext.code;
+            String generatedCode = prgContext.prog;
 
             // Mostrar el código generado
             System.out.println(generatedCode);
