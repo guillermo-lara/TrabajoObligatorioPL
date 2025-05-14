@@ -68,11 +68,6 @@ bloque: '{' sentlist '}';
 listparam: listparam ',' type ID | type ID;
 type: 'void' | 'int' | 'float';
 
-lcond: lcond opl lcond | cond | '!' cond;
-opl: '||' | '&&';
-cond: exp opr exp;
-opr: '==' | '<' | '>' | '>=' | '<=';
-
 
 
 
