@@ -39,7 +39,4 @@ begin
     r := 7.5;
     area := CircleArea(r);
 
-    writeln('Radius: ', r);
-    writeln('Area of circle: ', area);
-    writeln('Constant factor: ', FACTOR);
 end.

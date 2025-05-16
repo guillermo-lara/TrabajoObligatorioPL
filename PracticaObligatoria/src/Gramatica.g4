@@ -5,23 +5,40 @@ grammar Gramatica;
 
 axioma: prg;
 
-prg returns [String prog]: 'program' ID ';' blq '.' {$prog = "void main(void){ \n" +$blq.bloq +"\n }";}
-   | 'unit' ID ';' dcllist '.'{$prog = "// Libreria" +$ID.text +$dcllist.dcllis;};
+prg returns [String prog]:
+    'program' ID ';' blq '.' {
+        $prog = "#include <stdio.h>\n" +
+                $blq.bloq + "\n\nint main(void) {\n" + $blq.bloqMain +
+                "return 0;\n}\n";
+    }
+   | 'unit' ID ';' dcllist '.' {
+        $prog = "// Libreria " + $ID.text + "\n" + $dcllist.dcllis;
+    };
 
-blq returns [String bloq]: dcllist 'begin' sentlist 'end' {
-    $bloq = $dcllist.dcllis +$sentlist.senlis;
-};
+blq returns [String bloq, String bloqMain]:
+    dcllist 'begin' sentlist 'end' {
+        $bloq = $dcllist.dcllis + "\n" + $sentlist.senlis + "\n";
+        $bloqMain = $sentlist.senlisMain + "\n";
+    };
 
 dcllist returns [String dcllis]:
-    dcl dcllist { $dcllis = $dcl.dcll +$dcllist.dcllis; }
+    dcl dcllist {
+        $dcllis = "\t" + $dcl.dcll + "\n" + $dcllist.dcllis;
+    }
     | { $dcllis = ""; };
 
-sentlist returns [String senlis]:
-    sent sentlistp { $senlis = $sent.sen + $sentlistp.senlisp; };
+sentlist returns [String senlis, String senlisMain]:
+    sent sentlistp {
+        $senlis = $sent.sen + $sentlistp.senlisp;
+        $senlisMain = $sent.senMain + $sentlistp.senlispMain;
+    };
 
-sentlistp returns [String senlisp]:
-    sent sentlistp { $senlisp = $sent.sen + $sentlistp.senlisp; }
-    | { $senlisp = ""; };
+sentlistp returns [String senlisp, String senlispMain]:
+    sent sentlistp {
+        $senlisp = $sent.sen + $sentlistp.senlisp;
+        $senlispMain = $sent.senMain + $sentlistp.senlispMain;
+    }
+    | { $senlisp = ""; $senlispMain = ""; };
 
 dcl returns [String dcll]:
     defcte { $dcll = $defcte.defconst; }
@@ -31,7 +48,7 @@ dcl returns [String dcll]:
 
 defcte returns [String defconst]:
     'CONST'|'const' ctelist {
-        $defconst = "#define " + $ctelist.ctelis +"\n";
+        $defconst = $ctelist.ctelis;
     };
 
 ctelist returns [String ctelis]:
@@ -41,7 +58,7 @@ ctelist returns [String ctelis]:
 
 ctelistp returns [String ctelisp]:
     ID '=' simpvalue ';' ctelistp {
-        $ctelisp = $ID.text + " " + $simpvalue.simp + "\n" + $ctelistp.ctelisp;
+        $ctelisp = "#define " + $ID.text + " " + $simpvalue.simp + "\n" + $ctelistp.ctelisp;
     }
     | { $ctelisp = ""; };
 
@@ -57,12 +74,12 @@ defvar returns [String defvari]:
 
 defvarlist returns [String defvarlis]:
     varlist ':' tbas defvarlistp {
-        $defvarlis = $tbas.vlex +$varlist.varlis + $defvarlistp.defvarlisp;
+        $defvarlis = $tbas.vlex + $varlist.varlis + $defvarlistp.defvarlisp;
     };
 
 defvarlistp returns [String defvarlisp]:
     ';' varlist ':' tbas defvarlistp {
-        $defvarlisp = ";\n" + $tbas.vlex + $varlist.varlis +"\n" + $defvarlistp.defvarlisp;
+        $defvarlisp = ";\n" + $tbas.vlex + $varlist.varlis + "\n" + $defvarlistp.defvarlisp;
     }
     | { $defvarlisp = ""; };
 
@@ -75,12 +92,19 @@ varlistaux returns [String varlisaux]:
 
 defproc returns [String defproceso]:
     'PROCEDURE'|'procedure' ID formal_paramlist ';' blq ';' {
-        $defproceso = "void " + $ID.text + " " + $formal_paramlist.for_paramli + "\n" + "{" + "\n" + $blq.bloq + "\n" + "}";
+        $defproceso = "void " + $ID.text + "(" + $formal_paramlist.for_paramli + ")" + "\n" +
+                      "{" + "\n" +
+                      "\t" + $blq.bloq + "\n" +
+                      "\t" + "}\n";
     };
 
 deffun returns [String deffuncion]:
     'FUNCTION'|'function' ID formal_paramlist ':' tbas ';' blq ';' {
-        $deffuncion = $tbas.vlex + $ID.text + " " + $formal_paramlist.for_paramli + "\n" + "{" + "\n" + $blq.bloq + "\n" + "}";
+        $deffuncion = $tbas.vlex + $ID.text + "(" + $formal_paramlist.for_paramli + ")" + "\n" +
+                      "{" + "\n" +
+                      "\t" + $blq.bloq + "\n" +
+                      "\t" + "return " + $ID.text + ";\n" +
+                      "}\n";
     };
 
 formal_paramlist returns [String for_paramli]:
@@ -89,7 +113,7 @@ formal_paramlist returns [String for_paramli]:
     | { $for_paramli = "( void )"; };
 
 formalparam returns [String for_para]:
-    varlist ':' tbas formalparamaux { $for_para = $tbas.vlex +" " +$varlist.varlis  ;};
+    varlist ':' tbas formalparamaux { $for_para = $tbas.vlex + " " + $varlist.varlis; };
 
 formalparamaux returns [String for_paraaux]:
     ';' formalparam { $for_paraaux = "; " + $formalparam.for_para; }
@@ -99,24 +123,78 @@ tbas returns [String vlex]:
     'INTEGER' { $vlex = "int "; }
     | 'REAL' { $vlex = "float "; };
 
-sent returns [String sen]:
-    asig ';' { $sen = $asig.asi + " ;"; }
-    | proc_call ';' { $sen = $proc_call.procall + " ;"; }
-    | 'while' expcond 'do' blq { $sen = "while " + $expcond.expcon + " do " + $blq.bloq; }
-    | 'repeat' blq 'until' expcond ';' { $sen = "repeat " + $blq.bloq + " until " + $expcond.expcon + ";"; }
-    | 'for' ID ':=' exp inc exp 'do' blq { $sen = "for " + $ID.text + " = " + $exp.ex + " " + $inc.in + " " + $exp.ex + " do " + $blq.bloq; }
-    | 'if' '(' lcond ')' blq 'else' blq { $sen = "if ( " + $lcond.lcon + " ) " + $blq.bloq + " else " + $blq.bloq; }
-    | 'while' '(' lcond ')' blq { $sen = "while ( " + $lcond.lcon + " ) " + $blq.bloq; }
-    | 'do' blq 'until' '(' lcond ')' { $sen = "do " + $blq.bloq + " until ( " + $lcond.lcon + " )"; }
+sent returns [String sen, String senMain]:
+    asig ';' {
+        $senMain = "\t" + $asig.asi + ";\n";
+        $sen = "";
+    }
+    | proc_call ';' {
+        $senMain = "\t" + $proc_call.procall + ";\n";
+        $sen = "";
+    }
+    | 'writeln' '(' wrargs ')' ';' {
+        $sen = "\t" + "printf(" + $wrargs.args + ");\n";
+        $senMain = "\t" + "printf(" + $wrargs.args + ");\n";
+    }
+    | 'while' expcond 'do' blq {
+        $sen = "";
+        $senMain = "";
+    }
+    | 'repeat' blq 'until' expcond ';' {
+        $sen = "";
+        $senMain = "";
+    }
+    | 'for' ID ':=' exp inc exp 'do' blq {
+        $sen = "";
+        $senMain = "";
+    }
+    | 'if' '(' lcond ')' blq 'else' blq {
+        $sen = "";
+        $senMain = "";
+    }
+    | 'while' '(' lcond ')' blq {
+        $sen = "";
+        $senMain = "";
+    }
+    | 'do' blq 'until' '(' lcond ')' {
+        $sen = "";
+        $senMain = "";
+    }
     | 'for' '(' ID '=' exp ';' lcond ';' ID '=' exp ')' blq {
-        $sen = "for ( " + $ID.text + " = " + $exp.ex + "; " + $lcond.lcon + "; " + $ID.text + " = " + $exp.ex + " ) " + $blq.bloq;};
-    //|'writeln' exp { $sen = "printf(" + $exp.ex + ");" ; };
+        $sen = "";
+        $senMain = "";
+    };
+
+wrargs returns [String args]:
+    wrarg wrargsaux {
+        $args = $wrarg.arg + $wrargsaux.argsaux;
+    };
+
+wrargsaux returns [String argsaux]:
+    ',' wrarg wrargsaux {
+        $argsaux = ", " + $wrarg.arg + $wrargsaux.argsaux;
+    }
+    | { $argsaux = ""; };
+
+wrarg returns [String arg]:
+    CONSTLI {
+        $arg = "\"" + $CONSTLI.text + "\"";
+    }
+    | exp {
+        $arg = "%s";  // Para flotantes
+        if ($exp.ex.startsWith("int")) {
+            $arg = "%d";  // Para enteros
+        }
+        $arg = String.format($arg, $exp.ex);
+    };
 
 asig returns [String asi]:
     ID ':=' exp { $asi = $ID.text + " = " + $exp.ex; };
 
 exp returns [String ex]:
-    factor expp { $ex = $factor.fact + $expp.exppp; };
+    factor expp {
+        $ex = $factor.fact + $expp.exppp;
+    };
 
 expp returns [String exppp]:
     op expp exp { $exppp = $op.opp + " " + $exp.ex + " " + $expp.exppp; }
@@ -155,7 +233,7 @@ expcond returns [String expcon]:
     factorcond expcondp { $expcon = $factorcond.factorcon + " " + $expcondp.expconp; };
 
 expcondp returns [String expconp]:
-    oplog expcond expcondp { $expconp = $oplog.oplo + " " + $expcond.expcon + " " + $expcondp.expconp; }
+    opl expcond expcondp { $expconp = $opl.opll + " " + $expcond.expcon + " " + $expcondp.expconp; }
     | { $expconp = ""; };
 
 oplog returns [String oplo]:
@@ -177,24 +255,6 @@ opcomp returns [String opcom]:
 inc returns [String in]:
     'to' { $in = "< "; }
     | 'downto' { $in = "> "; };
-
-program: defines partes;
-
-defines: '#define' ID ctes defines |;
-
-ctes: CONSTINT | CONSTREAL | CONSTLI;
-
-partes: part partes | part;
-
-part: type restpart;
-
-restpart: ID '(' listparam ')' bloque | ID '(' 'void' ')' bloque;
-
-bloque: '{' sentlist '}';
-
-listparam: listparam ',' type ID | type ID;
-
-type: 'void' | 'int' | 'float';
 
 lcond returns [String lcon]:
     opl lcondp { $lcon = $opl.opll + " " + $lcondp.lconp; }
@@ -220,6 +280,7 @@ opr returns [String oprr]:
     | '>' { $oprr = "> "; }
     | '>=' { $oprr = ">= "; }
     | '<=' { $oprr = "<= "; };
+
 
 ID: [a-zA-Z][a-zA-Z0-9_]*;
 CONSTINT: ('+'|'-')? [0-9]+;
